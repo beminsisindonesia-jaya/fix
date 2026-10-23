@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin Dokumentasi – BEM INSIS Indonesia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+
+  <!-- Penjaga halaman: belum masuk = dikembalikan ke login.html sebelum halaman sempat tampil.
+       CATATAN (Hadi): ini hanya pengaman tampilan. Pengaman sebenarnya harus ada di server. -->
+  <script src="api.js"></script>
+  <script>
+    if (!API.sudahMasuk()) {
+      document.documentElement.style.display = 'none';
+      location.replace('login.html');
+    }
+  </script>
+</head>
+<body class="admin">
+
+  <header class="admin-bar">
+    <a href="index.html" class="brand"><img src="Logo-bem.png" alt=""><span>Admin BEM INSIS</span></a>
+    <div class="bar-actions">
+      <a href="index.html" class="link-situs">Lihat situs</a>
+      <button class="btn btn-line btn-small" id="keluarBtn">Keluar</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <p class="demo-banner">Mode demo: data tersimpan di browser ini saja dan belum terhubung ke server.</p>
+
+    <!-- Form tambah dokumentasi -->
+    <section class="panel">
+      <h2>Tambah dokumentasi</h2>
+      <form id="tambahForm" novalidate>
+        <label for="judul">Judul kegiatan</label>
+        <input type="text" id="judul" maxlength="80" placeholder="Contoh: Seminar Nasional Tafsir" required>
+
+        <div class="baris">
+          <div>
+            <label for="tanggal">Tanggal kegiatan</label>
+            <input type="date" id="tanggal" required>
+          </div>
+          <div>
+            <label for="kategori">Kategori</label>
+            <select id="kategori">
+              <option value="akademik">Akademik</option>
+              <option value="sosial">Sosial</option>
+              <option value="keagamaan">Keagamaan</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="foto">Foto sampul</label>
+        <input type="file" id="foto" accept="image/*">
+        <p class="muted kecil">Pilih satu foto terbaik untuk mewakili kegiatan. Foto dikecilkan otomatis agar situs tetap ringan.</p>
+        <div class="preview" id="preview" hidden>
+          <img id="previewImg" alt="Pratinjau foto">
+        </div>
+
+        <label for="album">Tautan album Google Drive (opsional)</label>
+        <input type="url" id="album" placeholder="https://drive.google.com/...">
+        <p class="muted kecil">Foto lengkap kegiatan tetap disimpan di Drive. Pastikan folder diatur "Siapa saja yang memiliki link: Penampil".</p>
+
+        <p class="error" id="tambahError" role="alert"></p>
+        <button type="submit" class="btn btn-gold" id="simpanBtn">Simpan dokumentasi</button>
+      </form>
+    </section>
+
+    <!-- Daftar dokumentasi -->
+    <section class="panel">
+      <h2>Dokumentasi tersimpan <span class="jumlah" id="jumlah"></span></h2>
+      <ul class="daftar" id="daftar"></ul>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

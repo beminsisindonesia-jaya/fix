@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Masuk Admin – BEM INSIS Indonesia</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+
+  <main class="login-wrap">
+    <form class="panel login" id="loginForm" novalidate>
+      <img src="Logo-bem.png" alt="Logo BEM INSIS Indonesia" class="login-logo">
+      <h1>Admin Dokumentasi</h1>
+      <p class="muted">Khusus anggota Media dan Informasi.</p>
+
+      <label for="sandi">Kata sandi</label>
+      <input type="password" id="sandi" autocomplete="current-password" required>
+      <p class="error" id="loginError" role="alert"></p>
+
+      <button type="submit" class="btn btn-gold">Masuk</button>
+      <p class="demo-note">Mode demo: kata sandi <strong>inspire123</strong>. Akan diganti login server oleh Hadi.</p>
+      <a href="index.html" class="kembali">&larr; Kembali ke situs</a>
+    </form>
+  </main>
+
+  <script src="api.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>
