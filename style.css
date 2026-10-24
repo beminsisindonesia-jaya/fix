@@ -19,7 +19,7 @@
    ===================================================== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+html { scroll-behavior: smooth; scroll-padding-top: 63px; }
 
 body {
   font-family: var(--font-isi);
