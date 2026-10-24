@@ -11,28 +11,34 @@ if (parameter === '1' || (perangkatLemah && parameter !== '0')) {
 }
 
 /* =====================================================
-   1. MENU HP (buka/tutup) + bayangan navbar saat scroll
+   1. NAVBAR: menu HP (buka/tutup) + pil mengambang saat scroll
    ===================================================== */
 const menuBtn = document.getElementById('menuBtn');
 const menu = document.getElementById('menu');
 const navbar = document.getElementById('navbar');
 
-menuBtn.addEventListener('click', () => {
-  const terbuka = menu.classList.toggle('open');
-  menuBtn.setAttribute('aria-expanded', terbuka);
-});
+// Buka / tutup menu HP (sekaligus memburamkan halaman di belakangnya lewat class di <body>)
+function aturMenu(buka) {
+  menu.classList.toggle('open', buka);
+  document.body.classList.toggle('menu-terbuka', buka);
+  menuBtn.setAttribute('aria-expanded', buka);
+  menuBtn.setAttribute('aria-label', buka ? 'Tutup menu' : 'Buka menu');
+}
+
+menuBtn.addEventListener('click', () => aturMenu(!menu.classList.contains('open')));
 
 // Menu tertutup otomatis setelah salah satu link diklik
-menu.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    menu.classList.remove('open');
-    menuBtn.setAttribute('aria-expanded', 'false');
-  });
-});
+menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => aturMenu(false)));
 
-window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 20);
-});
+// Tutup juga lewat tombol Esc, ketukan di area buram, atau saat layar melebar ke ukuran laptop
+document.addEventListener('keydown', e => { if (e.key === 'Escape') aturMenu(false); });
+document.addEventListener('click', e => { if (e.target === document.body) aturMenu(false); });
+window.matchMedia('(min-width: 768px)').addEventListener('change', e => { if (e.matches) aturMenu(false); });
+
+// Navbar berubah menjadi "pil" mengambang setelah halaman di-scroll sedikit
+function aturNavbar() { navbar.classList.toggle('scrolled', window.scrollY > 20); }
+window.addEventListener('scroll', aturNavbar, { passive: true });
+aturNavbar();
 
 /* =====================================================
    2. PENGATURAN GERAK (animasi roda di logo murni CSS, lihat style.css bagian 18)
