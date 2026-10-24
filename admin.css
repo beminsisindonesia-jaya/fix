@@ -104,3 +104,7 @@ body.admin { background: var(--hitam); color: var(--krem); min-height: 100vh; }
 /* Tautan kembali di halaman login */
 .kembali { display: inline-block; margin-top: 1rem; font-size: .85rem; color: #aaa; }
 .kembali:hover { color: var(--emas-terang); }
+
+/* Sub-judul di dalam panel */
+.sub { font-size: 1rem; margin: 1.6rem 0 .8rem; }
+.panel > .muted { margin-bottom: .4rem; }

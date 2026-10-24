@@ -95,7 +95,6 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 
 /* Logo kabinet: hitam di atas panel emas.
    mix-blend-mode: multiply membuat latar krem pada foto menyatu dengan emas. */
-.hero-logo { perspective: 900px; display: flex; justify-content: center; }
 .logo-card {
   width: 100%; aspect-ratio: 1;
   background: var(--emas);
@@ -289,30 +288,7 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 .orb-2 { width: 340px; height: 340px; background: radial-gradient(circle, #7a5a22, transparent 68%); bottom: 140px; left: -70px; animation-delay: -6s; }
 @keyframes melayang { to { transform: translate(-40px, 50px) scale(1.15); } }
 
-/* Logo kabinet 3D: panggung berlapis (cincin di belakang, chip kaca di depan) */
-.logo-stage {
-  position: relative; width: min(78vw, 320px); aspect-ratio: 1;
-  transform-style: preserve-3d; transition: transform .15s ease-out;
-}
-.logo-card { transform: translateZ(20px); }
-.ring { position: absolute; border-radius: 50%; border: 1px solid rgba(196, 154, 82, .45); pointer-events: none; }
-.ring-1 { inset: -9%; transform: translateZ(-40px); }
-.ring-2 { inset: -20%; transform: translateZ(-90px); border-color: rgba(196, 154, 82, .22); }
 
-.chip {
-  position: absolute; padding: .45rem 1rem; border-radius: 999px;
-  font-family: var(--font-judul); font-weight: 500; font-size: .85rem; color: var(--krem);
-  background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .25);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  transform: translateZ(90px); animation: apung 5s ease-in-out infinite alternate;
-}
-.chip-1 { top: 6%; left: -4%; }
-.chip-2 { top: 42%; right: -6%; animation-delay: -1.7s; }
-.chip-3 { bottom: 4%; left: 6%; animation-delay: -3.2s; }
-@keyframes apung {
-  from { transform: translateZ(90px) translateY(0); }
-  to   { transform: translateZ(90px) translateY(-12px); }
-}
 
 /* Tombol emas bercahaya */
 .btn-gold:hover { box-shadow: 0 0 28px rgba(224, 185, 106, .45); }
@@ -373,7 +349,6 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
   .hero { flex-direction: row; align-items: center; justify-content: space-between; padding: 100px max(2rem, calc((100vw - 1080px) / 2)) 3rem; }
   .hero-text { flex: 1; }
   .hero h1 { font-size: 3.2rem; }
-  .logo-stage { width: 380px; }
 
   .section { padding: 6rem 2rem; }
   h2 { font-size: 2.4rem; }
@@ -408,10 +383,9 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 .hemat .navbar { background: rgba(18, 18, 18, .96); }
 .hemat .value { background: rgba(255, 255, 255, .1); }
 .hemat .form, .hemat .panel { background: rgba(255, 255, 255, .08); }
-.hemat .chip { background: rgba(60, 60, 60, .9); }
+.hemat .pilar-item { background: rgba(255, 255, 255, .09); }
 .hemat .lightbox { background: rgba(0, 0, 0, .88); }
-.hemat .orb, .hemat .ring-2, .hemat .hero::before, .hemat .hero::after { display: none; }
-.hemat .logo-stage { transform: none !important; }
+.hemat .orb, .hemat .hero::before, .hemat .hero::after { display: none; }
 
 /* =====================================================
    14. ANGKA BERHITUNG (di bagian Tentang)
@@ -432,20 +406,6 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 }
 
 /* =====================================================
-   15. TABLET (768 - 1023 px, misalnya iPad mini)
-   Logo dikecilkan dan judul sedikit diperkecil agar hero
-   muat sejajar tanpa terpotong di sisi kanan.
-   ===================================================== */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .hero { gap: 1.5rem; }
-  .hero-text { min-width: 0; }
-  .hero h1 { font-size: 2.5rem; }
-  .hero-logo { flex-shrink: 0; }
-  .logo-stage { width: 300px; }
-  .chip-2 { right: -2%; }
-}
-
-/* =====================================================
    16. KARTU ARSIP & TOMBOL ALBUM
    ===================================================== */
 .btn[hidden] { display: none; }
@@ -463,5 +423,146 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 .card-arsip p { font-size: .88rem; color: #666; }
 .kosong-galeri { grid-column: 1 / -1; color: #666; padding: 1rem 0; }
 
-.tautan-pengurus { color: #777; font-size: .8rem; }
+/* =====================================================
+   17. HERO DI TENGAH + LOGO DI BAGIAN TENTANG
+   ===================================================== */
+.hero { align-items: center; justify-content: center; text-align: center; }
+.hero-desc { margin-left: auto; margin-right: auto; }
+.hero-actions { justify-content: center; }
+
+.hero-text { max-width: 960px; }
+.hero h1 { font-size: clamp(2.3rem, 5.4vw, 4.1rem); text-wrap: balance; }
+
+/* Tiga pilar kabinet: kartu kaca di bawah tombol */
+.pilar { display: grid; gap: .8rem; margin: 2.6rem auto 0; text-align: left; }
+.pilar-item {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; align-items: center;
+  padding: 1rem 1.2rem; border-radius: 16px; color: var(--krem);
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  animation: naik .7s ease backwards;
+}
+.pilar-item:nth-child(2) { animation-delay: .12s; }
+.pilar-item:nth-child(3) { animation-delay: .24s; }
+.pilar-no { grid-row: span 2; font-family: var(--font-judul); font-weight: 700; font-size: 1.6rem; line-height: 1; color: var(--emas); }
+.pilar-judul { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--emas-terang); }
+.pilar-ket { font-size: .88rem; line-height: 1.5; color: #cfc8b8; }
+@keyframes naik { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+@media (min-width: 768px) {
+  .hero { flex-direction: column; justify-content: center; padding: 110px 2rem 4rem; }
+  .hero-text { flex: none; }
+  .pilar { grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3rem; }
+  .pilar-item { display: block; padding: 1.4rem 1.4rem 1.5rem; }
+  .pilar-no { display: block; font-size: .85rem; letter-spacing: .16em; margin-bottom: .9rem; }
+  .pilar-no::after { content: ""; display: block; width: 30px; height: 2px; margin-top: .6rem; background: var(--emas); }
+  .pilar-judul { font-size: 1.25rem; margin-bottom: .35rem; }
+}
+
+/* Tentang: logo kiri, teks kanan (di HP: logo kecil di atas teks) */
+.tentang-grid { display: grid; gap: 2.5rem; align-items: center; }
+.tentang-logo { display: flex; justify-content: center; }
+.tentang-logo .logo-stage { width: min(72vw, 300px); }
+
+@media (min-width: 768px) {
+  .tentang-grid { grid-template-columns: minmax(260px, 420px) 1fr; gap: 4rem; }
+  .tentang-logo .logo-stage { width: 100%; }
+}
+
+/* Tautan kecil di footer */
+.tautan-pengurus { color: #777; }
 .tautan-pengurus:hover { color: var(--emas-terang); }
+
+/* =====================================================
+   18. RODA BERGERIGI BERPUTAR DI SEKITAR LOGO (bagian Tentang)
+   Roda luar berputar ke kanan, roda di dalamnya ke kiri, dan seterusnya
+   berselang-seling. Hanya memakai transform, jadi ringan.
+   Atur kecepatan lewat angka detik (makin kecil = makin cepat).
+   ===================================================== */
+.logo-stage { position: relative; aspect-ratio: 1; }
+
+.gear { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; will-change: transform; }
+.gear circle { fill: none; stroke: currentColor; }
+.gear .titik { fill: currentColor; stroke: none; }
+
+.gear-1 { color: var(--emas);      animation: putar 45s linear infinite; }
+.gear-2 { color: var(--emas-tua);  animation: putar-balik 32s linear infinite; }
+.gear-3 { color: var(--emas);      animation: putar 24s linear infinite; }
+.gear-4 { color: var(--emas-tua);  animation: putar-balik 18s linear infinite; }
+@keyframes putar { to { transform: rotate(360deg); } }
+@keyframes putar-balik { to { transform: rotate(-360deg); } }
+
+/* Logo di tengah: bernapas pelan */
+.tentang-logo .logo-card {
+  position: absolute; inset: 19%; width: auto; transition: none;
+  box-shadow: 0 0 0 6px rgba(196, 154, 82, .2);
+  animation: napas 5s ease-in-out infinite;
+}
+@keyframes napas { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+
+/* =====================================================
+   19. ROLL FOTO DI BAGIAN DOKUMENTASI
+   Dua baris foto penuh lebar: ikhwan bergerak kanan ke kiri,
+   akhwat kiri ke kanan. Berhenti saat kursor di atasnya.
+   Kecepatan diatur di script.js (DETIK_PER_FOTO).
+   ===================================================== */
+.roll-blok { margin: 0 -1.25rem; display: grid; gap: .9rem; }
+.roll-label {
+  width: 100%; max-width: calc(1080px + 2.5rem); margin: 1rem auto 0; padding: 0 1.25rem;
+  font-family: var(--font-judul); font-weight: 600; font-size: .85rem;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--emas-tua);
+}
+.roll-label:first-child { margin-top: 0; }
+
+.roll {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.roll-track {
+  display: flex; gap: 1rem; width: max-content; padding-right: 1rem; /* sama dengan gap: putaran tanpa sambungan */
+  animation: gulung-kiri var(--durasi, 50s) linear infinite; will-change: transform;
+}
+.roll-kanan .roll-track { animation-name: gulung-kanan; }
+.roll:hover .roll-track { animation-play-state: paused; }
+
+.roll-item {
+  flex: none; width: clamp(190px, 26vw, 300px); aspect-ratio: 4 / 3;
+  border: 0; padding: 0; border-radius: 16px; overflow: hidden; cursor: pointer;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, #000, #3a2f1a); color: var(--emas);
+  font-family: var(--font-judul); font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.roll-item:hover { transform: scale(1.04); box-shadow: 0 10px 24px rgba(0, 0, 0, .28); }
+.roll-item img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }
+.roll-kosong { color: #666; padding: .5rem 1.25rem; }
+
+@keyframes gulung-kiri  { to { transform: translateX(-50%); } }
+@keyframes gulung-kanan { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+/* Tanpa animasi (mode hemat / pengguna mematikan animasi): baris bisa digeser dengan jari */
+.roll.diam { overflow-x: auto; -webkit-mask-image: none; mask-image: none; scroll-snap-type: x proximity; padding-bottom: .5rem; }
+.roll.diam .roll-track { animation: none; padding-left: 1.25rem; }
+.roll.diam .roll-item { scroll-snap-align: start; }
+
+.roll-aksi { margin-top: 2.4rem; text-align: center; }
+
+/* Foto di pop-up ditampilkan utuh, tidak terpotong */
+.lightbox-img { background: #111; }
+.lightbox-img img { object-fit: contain; }
+
+@media (min-width: 768px) {
+  .roll-blok { margin: 0 -2rem; }
+  .roll-label { padding: 0 2rem; }
+}
+
+/* Halaman sementara untuk "Seluruh dokumentasi" */
+.segera {
+  min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 1rem;
+  padding: 1.5rem; text-align: center; background: var(--hitam); color: var(--krem);
+}
+.segera img { width: 72px; height: 72px; border-radius: 50%; }
+.segera h1 { font-size: 1.8rem; color: var(--emas); }
+.segera p { max-width: 42ch; color: #cfc8b8; }

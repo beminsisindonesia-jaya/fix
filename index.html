@@ -38,36 +38,74 @@
       <!-- Cahaya emas di latar -->
       <span class="orb orb-1"></span>
       <span class="orb orb-2"></span>
+
       <div class="hero-text">
         <p class="hero-sub">Kabinet Inspire</p>
         <h1>Bertumbuh dalam Ilmu, Akhlak, dan Pengabdian</h1>
         <p class="hero-desc">Badan Eksekutif Mahasiswa INSIS Indonesia. Lihat kegiatan kami, kenali nilai kami, dan sampaikan suaramu.</p>
-        <div class="hero-actions">  
+        <div class="hero-actions">
           <a href="#dokumentasi" class="btn btn-gold">Lihat dokumentasi</a>
           <a href="#aspirasi" class="btn btn-line">Sampaikan aspirasi</a>
         </div>
-      </div>
 
-      <!-- Logo kabinet: bergerak mengikuti sentuhan/kursor (lihat script.js) -->
-      <div class="hero-logo" id="heroLogo">
-        <div class="logo-stage" id="logoCard">
-          <span class="ring ring-1"></span>
-          <span class="ring ring-2"></span>
-          <div class="logo-card">
-            <img src="Logo-kabinet.png" alt="Logo Kabinet Inspire">
-          </div>
-          <span class="chip chip-1">Ilmu</span>
-          <span class="chip chip-2">Akhlak</span>
-          <span class="chip chip-3">Pengabdian</span>
+        <!-- Tiga pilar kabinet: kartu kaca di bawah tombol (teks boleh diubah) -->
+        <div class="pilar">
+          <article class="pilar-item tilt">
+            <span class="pilar-no">01</span>
+            <h3 class="pilar-judul">Ilmu</h3>
+            <p class="pilar-ket">Terus belajar dan berkembang berlandaskan Al-Qur'an dan As-Sunnah.</p>
+          </article>
+          <article class="pilar-item tilt">
+            <span class="pilar-no">02</span>
+            <h3 class="pilar-judul">Akhlak</h3>
+            <p class="pilar-ket">Amanah, jujur, dan berakhlak mulia dalam setiap langkah.</p>
+          </article>
+          <article class="pilar-item tilt">
+            <span class="pilar-no">03</span>
+            <h3 class="pilar-judul">Pengabdian</h3>
+            <p class="pilar-ket">Melayani mahasiswa dan masyarakat dengan sepenuh hati.</p>
+          </article>
         </div>
       </div>
     </section>
 
     <!-- ========== TENTANG ========== -->
     <section class="section light" id="tentang">
-      <div class="wrap">
-        <h2>Tentang kami</h2>
-        <blockquote class="quote">
+      <div class="wrap tentang-grid">
+
+        <!-- Logo kabinet dikelilingi roda bergerigi yang berputar (animasi CSS, lihat style.css bagian 18) -->
+        <div class="tentang-logo">
+          <div class="logo-stage">
+            <!-- Roda 1 (paling luar): berputar ke kanan -->
+            <svg class="gear gear-1" viewBox="0 0 400 400" aria-hidden="true">
+              <circle cx="200" cy="200" r="190" stroke-width="7" stroke-dasharray="1.2 1.8" pathLength="360" opacity=".6"/>
+              <circle cx="200" cy="200" r="197" stroke-width="1" opacity=".5"/>
+            </svg>
+            <!-- Roda 2: berputar ke kiri -->
+            <svg class="gear gear-2" viewBox="0 0 400 400" aria-hidden="true">
+              <circle cx="200" cy="200" r="172" stroke-width="3" stroke-linecap="round" stroke-dasharray="85 20 45 25 105 80" pathLength="360"/>
+              <circle class="titik" cx="200" cy="28" r="4.5"/>
+              <circle class="titik" cx="200" cy="372" r="4.5"/>
+            </svg>
+            <!-- Roda 3: berputar ke kanan -->
+            <svg class="gear gear-3" viewBox="0 0 400 400" aria-hidden="true">
+              <circle cx="200" cy="200" r="152" stroke-width="10" stroke-dasharray="2.2 1.8" pathLength="360" opacity=".65"/>
+              <circle cx="200" cy="200" r="146" stroke-width="1.5" opacity=".6"/>
+            </svg>
+            <!-- Roda 4 (paling dalam): berputar ke kiri -->
+            <svg class="gear gear-4" viewBox="0 0 400 400" aria-hidden="true">
+              <circle cx="200" cy="200" r="137" stroke-width="2" stroke-dasharray="12 8" pathLength="360"/>
+            </svg>
+
+            <div class="logo-card">
+              <img src="Logo-kabinet.png" alt="Logo Kabinet Inspire">
+            </div>
+          </div>
+        </div>
+
+        <div class="tentang-isi">
+          <h2>Tentang kami</h2>
+          <blockquote class="quote">
           Menjadi penggerak kebaikan yang menginspirasi mahasiswa untuk bertumbuh dalam ilmu, akhlak, dan pengabdian berlandaskan Al-Qur'an dan As-Sunnah.
         </blockquote>
         <p class="lead">
@@ -78,12 +116,12 @@
              Isi teks di dalam <span> adalah angka akhir, supaya tetap benar jika JavaScript mati. -->
         <div class="stats" id="stats">
           <div class="stat">
-            <span class="stat-num" data-target="27">27</span>
+            <span class="stat-num" data-target="28">28</span>
             <span class="stat-label">Mahasiswa terlibat</span>
           </div>
           <div class="stat">
             <span class="stat-num" data-target="45" data-suffix="+">45+</span>
-            <span class="stat-label">Program unggulan</span>
+            <span class="stat-label">Program kerja</span>
           </div>
           <div class="stat">
             <span class="stat-num" data-target="7">7</span>
@@ -91,6 +129,7 @@
           </div>
         </div>
         <!-- TODO: ganti dengan profil BEM yang sebenarnya -->
+        </div>
       </div>
     </section>
 
@@ -144,20 +183,20 @@
     <section class="section light" id="dokumentasi">
       <div class="wrap">
         <h2>Dokumentasi kegiatan</h2>
-        <p class="lead">Kegiatan terbaru dari divisi Media dan Informasi. Arsip lengkap tersimpan di Google Drive.</p>
+        <p class="lead">Potret kegiatan pilihan dari divisi Media dan Informasi. Arahkan kursor ke foto untuk menghentikan gerakan, lalu ketuk untuk memperbesar.</p>
+      </div>
 
-        <!-- Tombol filter -->
-        <div class="filters" id="filters">
-          <button class="filter active" data-filter="semua">Semua</button>
-          <button class="filter" data-filter="akademik">Akademik</button>
-          <button class="filter" data-filter="sosial">Sosial</button>
-          <button class="filter" data-filter="keagamaan">Keagamaan</button>
-        </div>
+      <!-- Dua roll foto yang bergerak berlawanan arah. Foto diambil dari api.js (foto pilihan beranda). -->
+      <div class="roll-blok">
+        <p class="roll-label">Dokumentasi ikhwan</p>
+        <div class="roll roll-kiri" id="rollIkhwan"><div class="roll-track"></div></div>
 
-        <!-- Kartu galeri. Nanti gambar & data diambil dari back-end (Hadi). -->
-        <div class="gallery" id="gallery">
-          <!-- Satu contoh kartu sudah lengkap; sisanya dibuat otomatis oleh script.js dari data contoh -->
-        </div>
+        <p class="roll-label">Dokumentasi akhwat</p>
+        <div class="roll roll-kanan" id="rollAkhwat"><div class="roll-track"></div></div>
+      </div>
+
+      <div class="roll-aksi">
+        <a href="dokumentasi.html" class="btn btn-gold">Lihat seluruh dokumentasi</a>
       </div>
     </section>
 
@@ -190,8 +229,7 @@
     <div>
       <strong>BEM INSIS Indonesia</strong>
       <p>Kabinet Inspire</p>
-      <p class="small">Instagram: @beminsisindonesia</p>
-      <p class="small">Email: beminsisindonesia@gmail.com</p>
+      <p class="small">Instagram: @beminsisindonesia <br> Email: beminsisindonesia@gmail.com</p>
       <p class="small"><a href="login.html" class="tautan-pengurus">Masuk pengurus</a></p>
     </div>
   </footer>

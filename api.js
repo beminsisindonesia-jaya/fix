@@ -11,6 +11,7 @@
 
 const KUNCI_DATA = 'inspire_dokumentasi';
 const KUNCI_LOGIN = 'inspire_admin';
+const KUNCI_PILIHAN = 'inspire_foto_pilihan';
 const SANDI_DEMO = 'inspire123'; // HANYA DEMO. Login asli harus di server.
 
 // Tautan folder arsip lengkap di Google Drive (kartu terakhir di galeri).
@@ -28,7 +29,12 @@ const DATA_CONTOH = [
   { id: 'c6', judul: 'Peringatan Maulid Nabi',   tanggal: '2026-10-10', kategori: 'keagamaan', foto: '', album: ARSIP_LENGKAP }
 ];
 
-// Bentuk satu data dokumentasi:
+// Foto pilihan untuk dua roll di beranda (roll 1 = ikhwan, roll 2 = akhwat).
+// Bentuk: { id, kelompok: 'ikhwan'|'akhwat', foto: 'alamat foto', keterangan: 'teks (boleh kosong)' }
+const PILIHAN_CONTOH = ['ikhwan', 'akhwat'].flatMap(k =>
+  Array.from({ length: 8 }, (_, i) => ({ id: `p-${k}-${i + 1}`, kelompok: k, foto: '', keterangan: `Contoh foto ${k} ${i + 1}` })));
+
+// Bentuk satu data dokumentasi (untuk halaman arsip lengkap nanti):
 // { id, judul, tanggal: 'YYYY-MM-DD', kategori: 'akademik'|'sosial'|'keagamaan',
 //   foto: 'alamat foto sampul', album: 'tautan album Google Drive (boleh kosong)' }
 // Satu data = satu KEGIATAN, dengan satu foto sampul. Foto lengkap ada di album Drive.
@@ -41,6 +47,14 @@ function tautanAman(url) {
 function bacaLokal() {
   try {
     const teks = localStorage.getItem(KUNCI_DATA);
+    if (teks) return JSON.parse(teks);
+  } catch (err) { /* abaikan, pakai data contoh */ }
+  return null;
+}
+
+function bacaPilihan() {
+  try {
+    const teks = localStorage.getItem(KUNCI_PILIHAN);
     if (teks) return JSON.parse(teks);
   } catch (err) { /* abaikan, pakai data contoh */ }
   return null;
@@ -75,6 +89,26 @@ const API = {
   async hapus(id) {
     const daftar = (bacaLokal() || DATA_CONTOH).filter(d => d.id !== id);
     localStorage.setItem(KUNCI_DATA, JSON.stringify(daftar));
+  },
+
+  // ----- Foto pilihan beranda (dua roll) -----
+  // HADI: GET /api/foto-pilihan, POST /api/foto-pilihan (FormData: kelompok, foto, keterangan),
+  //       DELETE /api/foto-pilihan/:id
+  async ambilFotoPilihan() {
+    return bacaPilihan() || PILIHAN_CONTOH;
+  },
+  async tambahFotoPilihan(item) {
+    const daftar = bacaPilihan() || [];
+    daftar.unshift({ ...item, id: 'p' + Date.now() }); // yang terbaru di depan
+    try {
+      localStorage.setItem(KUNCI_PILIHAN, JSON.stringify(daftar));
+    } catch (err) {
+      throw new Error('Penyimpanan browser penuh. Hapus beberapa foto lama (ini batas mode demo).');
+    }
+  },
+  async hapusFotoPilihan(id) {
+    const daftar = (bacaPilihan() || PILIHAN_CONTOH).filter(f => f.id !== id);
+    localStorage.setItem(KUNCI_PILIHAN, JSON.stringify(daftar));
   },
 
   // ----- Login admin (DEMO) -----

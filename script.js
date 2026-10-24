@@ -35,25 +35,10 @@ window.addEventListener('scroll', () => {
 });
 
 /* =====================================================
-   2. LOGO HERO: miring mengikuti kursor / jari
+   2. PENGATURAN GERAK (animasi roda di logo murni CSS, lihat style.css bagian 18)
    ===================================================== */
-const heroLogo = document.getElementById('heroLogo');
-const logoCard = document.getElementById('logoCard');
 const hematGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches
                 || document.documentElement.classList.contains('hemat');
-
-function miringkan(x, y) {
-  const kotak = heroLogo.getBoundingClientRect();
-  // Posisi kursor relatif terhadap tengah logo, nilainya -0.5 sampai 0.5
-  const px = (x - kotak.left) / kotak.width - 0.5;
-  const py = (y - kotak.top) / kotak.height - 0.5;
-  logoCard.style.transform = `rotateY(${px * 24}deg) rotateX(${-py * 24}deg)`;
-}
-
-if (!hematGerak) {
-  heroLogo.addEventListener('pointermove', e => miringkan(e.clientX, e.clientY));
-  heroLogo.addEventListener('pointerleave', () => { logoCard.style.transform = ''; });
-}
 
 // Sorotan cahaya di hero mengikuti kursor
 const hero = document.getElementById('beranda');
@@ -106,128 +91,90 @@ kartuNilai.forEach(kartu => {
 });
 
 /* =====================================================
-   4. GALERI: data dari api.js, filter, dan pop-up
+   4. ROLL FOTO: dua baris foto yang berjalan berlawanan arah
+   Baris ikhwan bergerak kanan ke kiri, baris akhwat kiri ke kanan.
+   Foto diambil dari api.js (API.ambilFotoPilihan).
    ===================================================== */
-const galeri = document.getElementById('gallery');
+const FOTO_MINIMAL = 8;     // satu putaran minimal 8 foto agar layar lebar selalu penuh
+const DETIK_PER_FOTO = 6;   // makin kecil, makin cepat
 
-// Galeri menampilkan kegiatan TERBARU saja. Kartu ke-6 selalu kartu arsip (tautan ke Google Drive).
-const BATAS_KARTU = 5;
-let semuaDokumentasi = [];
-let filterAktif = 'semua';
-
-// Satu kartu = satu kegiatan (memakai textContent agar aman dari kode berbahaya)
-function buatKartu(item) {
-  const kartu = document.createElement('button');
-  kartu.className = 'card tilt';
-  kartu.dataset.kategori = item.kategori;
-
-  const thumb = document.createElement('div');
-  thumb.className = 'thumb';
+function buatFotoRoll(item, salinan) {
+  const tombol = document.createElement('button');
+  tombol.type = 'button';
+  tombol.className = 'roll-item';
+  if (salinan) {                       // salinan hanya untuk sambungan animasi
+    tombol.tabIndex = -1;
+    tombol.setAttribute('aria-hidden', 'true');
+  }
   if (item.foto) {
     const img = document.createElement('img');
     img.src = item.foto;
-    img.alt = item.judul;
+    img.alt = item.keterangan || 'Dokumentasi kegiatan';
     img.loading = 'lazy';
-    thumb.appendChild(img);
+    img.draggable = false;
+    tombol.appendChild(img);
   } else {
-    thumb.textContent = 'Foto kegiatan';
+    tombol.textContent = 'Foto pilihan';
+  }
+  tombol.addEventListener('click', () => bukaPopup(item));
+  return tombol;
+}
+
+function isiRoll(roll, daftar) {
+  const track = roll.querySelector('.roll-track');
+  track.innerHTML = '';
+
+  if (daftar.length === 0) {
+    roll.classList.add('diam');
+    track.textContent = 'Belum ada foto pilihan.';
+    track.classList.add('roll-kosong');
+    return;
   }
 
-  const isi = document.createElement('div');
-  isi.className = 'card-body';
-  const judul = document.createElement('h3');
-  judul.textContent = item.judul;
-  const tgl = document.createElement('p');
-  tgl.textContent = formatTanggal(item.tanggal);
-  isi.append(judul, tgl);
+  // Satu putaran: ulangi foto bila jumlahnya kurang dari FOTO_MINIMAL
+  const putaran = [];
+  const jumlah = Math.max(FOTO_MINIMAL, daftar.length);
+  for (let i = 0; i < jumlah; i++) putaran.push(daftar[i % daftar.length]);
 
-  kartu.append(thumb, isi);
-  kartu.addEventListener('click', () => bukaPopup(item));
-  pasangTilt(kartu);
-  galeri.appendChild(kartu);
-}
+  putaran.forEach(item => track.appendChild(buatFotoRoll(item, false)));
 
-// Kartu khusus: mengarah ke arsip lengkap di Google Drive
-function buatKartuArsip() {
-  const kartu = document.createElement('a');
-  kartu.className = 'card card-arsip tilt';
-  kartu.href = ARSIP_LENGKAP;
-  kartu.target = '_blank';
-  kartu.rel = 'noopener noreferrer';
-
-  const ikon = document.createElement('span');
-  ikon.className = 'arsip-ikon';
-  ikon.textContent = '\u2192';
-  const judul = document.createElement('strong');
-  judul.textContent = 'Lihat arsip lengkap';
-  const ket = document.createElement('p');
-  ket.textContent = 'Seluruh dokumentasi tersimpan di Google Drive';
-
-  kartu.append(ikon, judul, ket);
-  pasangTilt(kartu);
-  galeri.appendChild(kartu);
-}
-
-// Susun ulang galeri sesuai filter: BATAS_KARTU kegiatan terbaru + kartu arsip
-function tampilkanGaleri() {
-  galeri.innerHTML = '';
-  const terpilih = semuaDokumentasi.filter(d => filterAktif === 'semua' || d.kategori === filterAktif);
-
-  terpilih.slice(0, BATAS_KARTU).forEach(buatKartu);
-
-  if (terpilih.length === 0) {
-    const kosong = document.createElement('p');
-    kosong.className = 'kosong-galeri';
-    kosong.textContent = 'Belum ada kegiatan di kategori ini.';
-    galeri.appendChild(kosong);
+  if (hematGerak) {
+    roll.classList.add('diam');        // tanpa animasi: baris bisa digeser dengan jari
+  } else {
+    putaran.forEach(item => track.appendChild(buatFotoRoll(item, true))); // salinan agar putaran mulus
+    track.style.setProperty('--durasi', (jumlah * DETIK_PER_FOTO) + 's');
   }
-  buatKartuArsip();
 }
 
-// Ambil data lewat api.js lalu tampilkan. Isi data diatur di api.js (dan nanti di server).
-async function muatDokumentasi() {
+async function muatFotoPilihan() {
   try {
-    semuaDokumentasi = await API.ambilSemua(); // sudah urut dari yang terbaru
-    tampilkanGaleri();
+    const semua = await API.ambilFotoPilihan();
+    isiRoll(document.getElementById('rollIkhwan'), semua.filter(f => f.kelompok === 'ikhwan'));
+    isiRoll(document.getElementById('rollAkhwat'), semua.filter(f => f.kelompok === 'akhwat'));
   } catch (err) {
-    galeri.textContent = 'Dokumentasi belum bisa dimuat. Coba lagi nanti.';
+    document.getElementById('rollIkhwan').textContent = 'Foto belum bisa dimuat. Coba lagi nanti.';
   }
 }
-muatDokumentasi();
-
-// Filter kategori
-const tombolFilter = document.querySelectorAll('.filter');
-
-tombolFilter.forEach(tombol => {
-  tombol.addEventListener('click', () => {
-    tombolFilter.forEach(t => t.classList.remove('active'));
-    tombol.classList.add('active');
-    filterAktif = tombol.dataset.filter;
-    tampilkanGaleri();
-  });
-});
+muatFotoPilihan();
 
 // Pop-up foto besar
 const lightbox = document.getElementById('lightbox');
 const lbClose = document.getElementById('lbClose');
 
 function bukaPopup(item) {
-  document.getElementById('lbTitle').textContent = item.judul;
-  document.getElementById('lbMeta').textContent = `${formatTanggal(item.tanggal)} · ${item.kategori}`;
+  document.getElementById('lbTitle').textContent = item.keterangan || 'Dokumentasi kegiatan';
+  document.getElementById('lbMeta').textContent = item.kelompok === 'akhwat' ? 'Dokumentasi akhwat' : 'Dokumentasi ikhwan';
   const area = document.getElementById('lbImg');
   area.innerHTML = '';
   if (item.foto) {
     const img = document.createElement('img');
     img.src = item.foto;
-    img.alt = item.judul;
+    img.alt = item.keterangan || 'Dokumentasi kegiatan';
     area.appendChild(img);
   } else {
-    area.textContent = 'Foto kegiatan';
+    area.textContent = 'Foto pilihan';
   }
-  // Tombol album Drive hanya muncul jika kegiatan punya tautan yang valid
-  const album = document.getElementById('lbAlbum');
-  if (tautanAman(item.album)) { album.href = item.album; album.hidden = false; }
-  else { album.hidden = true; }
+  document.getElementById('lbAlbum').hidden = true; // tombol album dipakai di halaman arsip nanti
 
   lightbox.hidden = false;
   lbClose.focus();

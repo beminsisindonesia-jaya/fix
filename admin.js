@@ -158,3 +158,90 @@ async function muatDaftar() {
 }
 
 muatDaftar();
+
+/* =====================================================
+   4. FOTO PILIHAN BERANDA (roll ikhwan & akhwat)
+   ===================================================== */
+const pilihanForm = document.getElementById('pilihanForm');
+const pilihanError = document.getElementById('pilihanError');
+const simpanPilihanBtn = document.getElementById('simpanPilihanBtn');
+const daftarPilihanEl = document.getElementById('daftarPilihan');
+
+pilihanForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  pilihanError.textContent = '';
+
+  const kelompok = document.getElementById('kelompok').value;
+  const file = document.getElementById('fotoPilihan').files[0];
+  const keterangan = document.getElementById('keterangan').value.trim();
+
+  if (!file) { pilihanError.textContent = 'Pilih satu foto.'; return; }
+  if (!file.type.startsWith('image/')) { pilihanError.textContent = 'File harus berupa gambar (JPG atau PNG).'; return; }
+
+  simpanPilihanBtn.disabled = true;
+  simpanPilihanBtn.textContent = 'Menyimpan...';
+  try {
+    const foto = await kompresFoto(file, 900); // roll tidak butuh foto yang terlalu besar
+    await API.tambahFotoPilihan({ kelompok, foto, keterangan });
+    pilihanForm.reset();
+    tampilkanToast('Foto pilihan tersimpan.');
+    muatPilihan();
+  } catch (err) {
+    pilihanError.textContent = err.message;
+  } finally {
+    simpanPilihanBtn.disabled = false;
+    simpanPilihanBtn.textContent = 'Simpan foto pilihan';
+  }
+});
+
+async function muatPilihan() {
+  const data = await API.ambilFotoPilihan();
+  document.getElementById('jumlahPilihan').textContent = `(${data.length})`;
+  daftarPilihanEl.innerHTML = '';
+
+  if (data.length === 0) {
+    const kosong = document.createElement('li');
+    kosong.className = 'kosong';
+    kosong.textContent = 'Belum ada foto pilihan.';
+    daftarPilihanEl.appendChild(kosong);
+    return;
+  }
+
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'item';
+
+    const foto = document.createElement('div');
+    foto.className = 'item-foto';
+    if (item.foto) {
+      const img = document.createElement('img');
+      img.src = item.foto;
+      img.alt = '';
+      foto.appendChild(img);
+    } else {
+      foto.textContent = 'Contoh';
+    }
+
+    const info = document.createElement('div');
+    info.className = 'item-info';
+    const judul = document.createElement('strong');
+    judul.textContent = item.keterangan || '(tanpa keterangan)';
+    const meta = document.createElement('span');
+    meta.textContent = item.kelompok === 'akhwat' ? 'Roll 2 - Akhwat' : 'Roll 1 - Ikhwan';
+    info.append(judul, meta);
+
+    const hapus = document.createElement('button');
+    hapus.className = 'hapus';
+    hapus.textContent = 'Hapus';
+    hapus.addEventListener('click', async () => {
+      if (!confirm('Hapus foto ini dari beranda? Tindakan ini tidak bisa dibatalkan.')) return;
+      await API.hapusFotoPilihan(item.id);
+      tampilkanToast('Foto dihapus.');
+      muatPilihan();
+    });
+
+    li.append(foto, info, hapus);
+    daftarPilihanEl.appendChild(li);
+  });
+}
+muatPilihan();

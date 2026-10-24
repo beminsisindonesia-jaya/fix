@@ -36,9 +36,35 @@
   <main class="admin-main">
     <p class="demo-banner">Mode demo: data tersimpan di browser ini saja dan belum terhubung ke server.</p>
 
-    <!-- Form tambah dokumentasi -->
+    <!-- Foto pilihan untuk dua roll di beranda -->
+    <section class="panel">
+      <h2>Foto pilihan beranda</h2>
+      <p class="muted kecil">Foto yang berjalan di beranda: roll pertama untuk ikhwan, roll kedua untuk akhwat. Pilih foto terbaik saja, dan pastikan semua yang ada di foto setuju fotonya dipublikasikan.</p>
+      <form id="pilihanForm" novalidate>
+        <label for="kelompok">Tampil di</label>
+        <select id="kelompok">
+          <option value="ikhwan">Roll 1 - Ikhwan</option>
+          <option value="akhwat">Roll 2 - Akhwat</option>
+        </select>
+
+        <label for="fotoPilihan">Foto</label>
+        <input type="file" id="fotoPilihan" accept="image/*">
+
+        <label for="keterangan">Keterangan (opsional)</label>
+        <input type="text" id="keterangan" maxlength="80" placeholder="Contoh: Seminar Nasional Tafsir 2026">
+
+        <p class="error" id="pilihanError" role="alert"></p>
+        <button type="submit" class="btn btn-gold" id="simpanPilihanBtn">Simpan foto pilihan</button>
+      </form>
+
+      <h3 class="sub">Foto tersimpan <span class="jumlah" id="jumlahPilihan"></span></h3>
+      <ul class="daftar" id="daftarPilihan"></ul>
+    </section>
+
+    <!-- Form tambah dokumentasi (untuk halaman arsip lengkap yang sedang disusun) -->
     <section class="panel">
       <h2>Tambah dokumentasi</h2>
+      <p class="muted kecil">Data ini akan tampil di halaman "Seluruh dokumentasi" yang sedang disusun.</p>
       <form id="tambahForm" novalidate>
         <label for="judul">Judul kegiatan</label>
         <input type="text" id="judul" maxlength="80" placeholder="Contoh: Seminar Nasional Tafsir" required>
