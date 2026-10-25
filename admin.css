@@ -108,3 +108,17 @@ body.admin { background: var(--hitam); color: var(--krem); min-height: 100vh; }
 /* Sub-judul di dalam panel */
 .sub { font-size: 1rem; margin: 1.6rem 0 .8rem; }
 .panel > .muted { margin-bottom: .4rem; }
+
+/* ---------- Alat potong foto (bingkai seragam 4:3) ---------- */
+.krop { margin: .4rem 0 .6rem; }
+.krop-bingkai {
+  position: relative; width: min(100%, 360px); aspect-ratio: 4 / 3; overflow: hidden;
+  border-radius: 12px; background: #000; border: 1px solid rgba(255, 255, 255, .2);
+  touch-action: none; cursor: grab;
+}
+.krop-bingkai:active { cursor: grabbing; }
+.krop-bingkai img {
+  position: absolute; left: 0; top: 0; max-width: none;
+  pointer-events: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none;
+}
+.admin input[type="range"] { padding: 0; background: none; border: 0; accent-color: var(--emas); width: min(100%, 360px); }

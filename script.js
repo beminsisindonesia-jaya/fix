@@ -36,7 +36,17 @@ document.addEventListener('click', e => { if (e.target === document.body) aturMe
 window.matchMedia('(min-width: 768px)').addEventListener('change', e => { if (e.matches) aturMenu(false); });
 
 // Navbar berubah menjadi "pil" mengambang setelah halaman di-scroll sedikit
-function aturNavbar() { navbar.classList.toggle('scrolled', window.scrollY > 20); }
+// Ada jeda antara batas "nyala" (20 px) dan "mati" (8 px) supaya navbar tidak berkedip
+// bolak-balik ketika posisi scroll berada di sekitar batas (sering terjadi di HP).
+let navMengambang = false;
+function aturNavbar() {
+  const y = window.scrollY;
+  const nyala = navMengambang ? y > 8 : y > 20;
+  if (nyala !== navMengambang) {
+    navMengambang = nyala;
+    navbar.classList.toggle('scrolled', nyala);
+  }
+}
 window.addEventListener('scroll', aturNavbar, { passive: true });
 aturNavbar();
 
@@ -99,36 +109,40 @@ kartuNilai.forEach(kartu => {
 /* =====================================================
    4. ROLL FOTO: dua baris foto yang berjalan berlawanan arah
    Baris ikhwan bergerak kanan ke kiri, baris akhwat kiri ke kanan.
+   Tampil seperti klip film jadul; tidak berhenti saat disentuh dan tidak bisa diklik.
    Foto diambil dari api.js (API.ambilFotoPilihan).
    ===================================================== */
-const FOTO_MINIMAL = 8;     // satu putaran minimal 8 foto agar layar lebar selalu penuh
-const DETIK_PER_FOTO = 6;   // makin kecil, makin cepat
+const KECEPATAN_ROLL = 50; // piksel per detik (makin besar, makin cepat)
 
+// Satu bingkai film (tidak interaktif: tidak bisa diklik, tidak ada pop-up)
 function buatFotoRoll(item, salinan) {
-  const tombol = document.createElement('button');
-  tombol.type = 'button';
-  tombol.className = 'roll-item';
-  if (salinan) {                       // salinan hanya untuk sambungan animasi
-    tombol.tabIndex = -1;
-    tombol.setAttribute('aria-hidden', 'true');
-  }
+  const bingkai = document.createElement('div');
+  bingkai.className = 'roll-item';
+  if (salinan) bingkai.setAttribute('aria-hidden', 'true'); // salinan hanya untuk sambungan animasi
+
+  const foto = document.createElement('div');
+  foto.className = 'roll-foto';
+  const rasio = Math.min(2, Math.max(0.6, Number(item.rasio) || 4 / 3)); // batas wajar agar bingkai tidak ekstrem
+  foto.style.setProperty('--rasio', rasio);
   if (item.foto) {
     const img = document.createElement('img');
     img.src = item.foto;
     img.alt = item.keterangan || 'Dokumentasi kegiatan';
     img.loading = 'lazy';
     img.draggable = false;
-    tombol.appendChild(img);
+    foto.appendChild(img);
   } else {
-    tombol.textContent = 'Foto pilihan';
+    foto.textContent = 'Foto pilihan';
   }
-  tombol.addEventListener('click', () => bukaPopup(item));
-  return tombol;
+  bingkai.appendChild(foto);
+  return bingkai;
 }
 
 function isiRoll(roll, daftar) {
   const track = roll.querySelector('.roll-track');
   track.innerHTML = '';
+  track.classList.remove('roll-kosong');
+  roll.classList.remove('diam');
 
   if (daftar.length === 0) {
     roll.classList.add('diam');
@@ -137,31 +151,55 @@ function isiRoll(roll, daftar) {
     return;
   }
 
-  // Satu putaran: ulangi foto bila jumlahnya kurang dari FOTO_MINIMAL
-  const putaran = [];
-  const jumlah = Math.max(FOTO_MINIMAL, daftar.length);
-  for (let i = 0; i < jumlah; i++) putaran.push(daftar[i % daftar.length]);
-
-  putaran.forEach(item => track.appendChild(buatFotoRoll(item, false)));
-
-  if (hematGerak) {
-    roll.classList.add('diam');        // tanpa animasi: baris bisa digeser dengan jari
-  } else {
-    putaran.forEach(item => track.appendChild(buatFotoRoll(item, true))); // salinan agar putaran mulus
-    track.style.setProperty('--durasi', (jumlah * DETIK_PER_FOTO) + 's');
+  if (hematGerak) {                    // tanpa animasi: pita bisa digeser dengan jari
+    roll.classList.add('diam');
+    daftar.forEach(item => track.appendChild(buatFotoRoll(item, false)));
+    return;
   }
+
+  // Satu putaran harus lebih lebar dari layar, jadi foto diulang sampai cukup panjang
+  const target = window.innerWidth * 1.2;
+  let i = 0;
+  while ((i === 0 || track.getBoundingClientRect().width < target) && i < 80) {
+    track.appendChild(buatFotoRoll(daftar[i % daftar.length], false));
+    i++;
+  }
+  const lebarPutaran = track.getBoundingClientRect().width;
+
+  // Salinan putaran agar sambungan animasi mulus
+  const asli = Array.from(track.children);
+  asli.forEach(el => {
+    const salinan = el.cloneNode(true);
+    salinan.setAttribute('aria-hidden', 'true');
+    track.appendChild(salinan);
+  });
+  track.style.setProperty('--durasi', (lebarPutaran / KECEPATAN_ROLL) + 's');
+}
+
+let fotoPilihanCache = [];
+function gambarRoll() {
+  isiRoll(document.getElementById('rollIkhwan'), fotoPilihanCache.filter(f => f.kelompok === 'ikhwan'));
+  isiRoll(document.getElementById('rollAkhwat'), fotoPilihanCache.filter(f => f.kelompok === 'akhwat'));
 }
 
 async function muatFotoPilihan() {
   try {
-    const semua = await API.ambilFotoPilihan();
-    isiRoll(document.getElementById('rollIkhwan'), semua.filter(f => f.kelompok === 'ikhwan'));
-    isiRoll(document.getElementById('rollAkhwat'), semua.filter(f => f.kelompok === 'akhwat'));
+    fotoPilihanCache = await API.ambilFotoPilihan();
+    gambarRoll();
   } catch (err) {
     document.getElementById('rollIkhwan').textContent = 'Foto belum bisa dimuat. Coba lagi nanti.';
   }
 }
 muatFotoPilihan();
+
+let lebarTerakhir = window.innerWidth;
+let jedaUkuran;
+window.addEventListener('resize', () => {
+  clearTimeout(jedaUkuran);
+  jedaUkuran = setTimeout(() => {
+    if (Math.abs(window.innerWidth - lebarTerakhir) > 60) { lebarTerakhir = window.innerWidth; gambarRoll(); }
+  }, 250);
+});
 
 // Pop-up foto besar
 const lightbox = document.getElementById('lightbox');

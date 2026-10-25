@@ -14,6 +14,27 @@ const KUNCI_LOGIN = 'inspire_admin';
 const KUNCI_PILIHAN = 'inspire_foto_pilihan';
 const SANDI_DEMO = 'inspire123'; // HANYA DEMO. Login asli harus di server.
 
+// Pengelompokan kegiatan di halaman "Seluruh dokumentasi".
+// KATEGORI = jenis kegiatan (mudah dipahami pengunjung, stabil dari kabinet ke kabinet).
+// Tambah, hapus, atau ganti nama di sini; halaman admin dan filter ikut berubah otomatis.
+// (id jangan diganti kalau sudah ada data tersimpan dengan id itu.)
+const KATEGORI = [
+  { id: 'akademik',   nama: 'Akademik' },
+  { id: 'keagamaan',  nama: 'Keagamaan' },
+  { id: 'sosial',     nama: 'Pengabdian masyarakat' },
+  { id: 'olahraga',   nama: 'Olahraga' },
+  { id: 'seni',       nama: 'Seni dan budaya' },
+  { id: 'organisasi', nama: 'Organisasi dan kepemimpinan' }
+];
+
+// DIVISI penyelenggara (opsional, jadi filter kedua). CONTOH: ganti dengan divisi BEM yang sebenarnya.
+const DIVISI = ['Pendidikan', 'Media dan Informasi', 'Sosial Masyarakat', 'Keagamaan', 'Olahraga dan Seni', 'Kaderisasi', 'Kesekretariatan'];
+
+function namaKategori(id) {
+  const k = KATEGORI.find(x => x.id === id);
+  return k ? k.nama : id;
+}
+
 // Tautan folder arsip lengkap di Google Drive (kartu terakhir di galeri).
 // >>> GANTI dengan tautan folder yang asli. Folder harus diatur
 //     "Siapa saja yang memiliki link: Penampil" (bukan Editor).
@@ -21,22 +42,29 @@ const ARSIP_LENGKAP = 'https://drive.google.com/drive/folders/GANTI_DENGAN_ID_FO
 
 // Data contoh yang tampil bila belum ada dokumentasi tersimpan
 const DATA_CONTOH = [
-  { id: 'c1', judul: 'Seminar Nasional Tafsir',  tanggal: '2026-08-12', kategori: 'akademik',  foto: '' },
-  { id: 'c2', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial',    foto: '' },
-  { id: 'c3', judul: 'Kajian Rutin Pekanan',     tanggal: '2026-09-18', kategori: 'keagamaan', foto: '' },
-  { id: 'c4', judul: 'Pelatihan Kepemimpinan',   tanggal: '2026-09-25', kategori: 'akademik',  foto: '' },
-  { id: 'c5', judul: 'Santunan Anak Yatim',      tanggal: '2026-10-02', kategori: 'sosial',    foto: '', album: ARSIP_LENGKAP },
-  { id: 'c6', judul: 'Peringatan Maulid Nabi',   tanggal: '2026-10-10', kategori: 'keagamaan', foto: '', album: ARSIP_LENGKAP }
+  { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: '' },
+  { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: '' },
+  { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: '' },
+  { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: '' },
+  { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: '' },
+  { id: 'c06', judul: 'Pelatihan Kepemimpinan', tanggal: '2026-09-25', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.778, foto: '' },
+  { id: 'c07', judul: 'Santunan Anak Yatim', tanggal: '2026-10-02', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.333, foto: '', album: ARSIP_LENGKAP },
+  { id: 'c08', judul: 'Lomba Kaligrafi', tanggal: '2026-10-05', kategori: 'seni', divisi: 'Olahraga dan Seni', rasio: 0.75, foto: '' },
+  { id: 'c09', judul: 'Peringatan Maulid Nabi', tanggal: '2026-10-10', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.5, foto: '', album: ARSIP_LENGKAP },
+  { id: 'c10', judul: 'Diskusi Publik Pendidikan', tanggal: '2026-10-15', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.333, foto: '' },
+  { id: 'c11', judul: 'Jalan Sehat Kampus', tanggal: '2026-10-18', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.778, foto: '' },
+  { id: 'c12', judul: 'Pelatihan Jurnalistik', tanggal: '2026-10-20', kategori: 'akademik', divisi: 'Media dan Informasi', rasio: 1.5, foto: '' }
 ];
 
 // Foto pilihan untuk dua roll di beranda (roll 1 = ikhwan, roll 2 = akhwat).
-// Bentuk: { id, kelompok: 'ikhwan'|'akhwat', foto: 'alamat foto', keterangan: 'teks (boleh kosong)' }
+// Bentuk: { id, kelompok: 'ikhwan'|'akhwat', foto: 'alamat foto', rasio: lebar/tinggi foto (misal 1.5), keterangan: 'teks alternatif (boleh kosong)' }
+const RASIO_CONTOH = [1.5, 0.75, 1.333, 1.778, 1, 1.5, 0.8, 1.333]; // variasi agar bingkai film terlihat hidup
 const PILIHAN_CONTOH = ['ikhwan', 'akhwat'].flatMap(k =>
-  Array.from({ length: 8 }, (_, i) => ({ id: `p-${k}-${i + 1}`, kelompok: k, foto: '', keterangan: `Contoh foto ${k} ${i + 1}` })));
+  RASIO_CONTOH.map((r, i) => ({ id: `p-${k}-${i + 1}`, kelompok: k, foto: '', rasio: r, keterangan: `Contoh foto ${k} ${i + 1}` })));
 
 // Bentuk satu data dokumentasi (untuk halaman arsip lengkap nanti):
-// { id, judul, tanggal: 'YYYY-MM-DD', kategori: 'akademik'|'sosial'|'keagamaan',
-//   foto: 'alamat foto sampul', album: 'tautan album Google Drive (boleh kosong)' }
+// { id, judul, tanggal: 'YYYY-MM-DD', kategori: id dari KATEGORI, divisi: nama divisi (boleh kosong),
+//   rasio: lebar/tinggi foto, foto: 'alamat foto sampul', album: 'tautan album Google Drive (boleh kosong)' }
 // Satu data = satu KEGIATAN, dengan satu foto sampul. Foto lengkap ada di album Drive.
 
 // Hanya tautan http/https yang dianggap aman (menolak "javascript:" dan sejenisnya)

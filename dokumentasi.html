@@ -4,21 +4,117 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seluruh Dokumentasi – BEM INSIS Indonesia</title>
+  <meta name="description" content="Arsip dokumentasi kegiatan BEM INSIS Indonesia Kabinet Inspire. Telusuri berdasarkan kategori, divisi, atau tanggal.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  
+
+  <!-- Ikon tab browser (favicon) dari logo BEM -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dokumentasi.css">
 </head>
-<body class="segera">
-  <img src="Logo-bem.png" alt="Logo BEM INSIS Indonesia">
-  <h1>Seluruh Dokumentasi</h1>
-  <p>Halaman ini sedang disiapkan oleh divisi Media dan Informasi. Segera hadir.</p>
-  <a href="index.html#dokumentasi" class="btn btn-gold">&larr; Kembali ke beranda</a>
+<body>
+
+  <!-- ========== NAVBAR (sama dengan beranda) ========== -->
+  <header class="navbar" id="navbar">
+    <a href="index.html" class="brand">
+      <img src="Logo-bem.png" alt="Logo BEM INSIS Indonesia">
+      <span>BEM INSIS Indonesia</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Buka menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="menu" id="menu">
+      <a href="index.html#tentang">Tentang</a>
+      <a href="index.html#nilai">Nilai</a>
+      <a href="index.html#dokumentasi">Dokumentasi</a>
+      <a href="index.html#aspirasi" class="menu-cta">Berikan Aspirasi</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ========== JUDUL HALAMAN ========== -->
+    <section class="dok-hero">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <div class="dok-hero-isi">
+        <p class="hero-sub">Arsip kegiatan</p>
+        <h1>Seluruh Dokumentasi</h1>
+        <p class="dok-deskripsi">Jelajahi kegiatan BEM INSIS Indonesia. Pilih kategori atau divisi, atau geser penanda waktu untuk melihat kegiatan pada tanggal tertentu.</p>
+      </div>
+    </section>
+
+    <!-- ========== PENYARING ========== -->
+    <div class="dok-kontrol-bungkus">
+      <section class="dok-kontrol" aria-label="Penyaring dokumentasi">
+        <div class="dok-baris">
+          <div class="dok-chips" id="dokChips" role="group" aria-label="Kategori"></div>
+          <label class="dok-divisi">Divisi
+            <select id="dokDivisi"></select>
+          </label>
+        </div>
+
+        <!-- Penggeser tanggal: geser untuk melihat dokumentasi pada tanggal tertentu -->
+        <div class="dok-waktu" id="dokWaktu">
+          <div class="dok-waktu-atas">
+            <span class="dok-waktu-judul">Telusuri tanggal</span>
+            <button type="button" class="dok-reset" id="dokReset" hidden>Tampilkan semua tanggal</button>
+          </div>
+          <div class="dok-slider">
+            <output class="dok-bubble" id="dokBubble" for="dokRentang"></output>
+            <input type="range" class="dok-rentang" id="dokRentang" min="0" max="0" step="1" value="0" aria-label="Pilih tanggal dokumentasi">
+            <div class="dok-ticks" id="dokTicks" aria-hidden="true"></div>
+          </div>
+          <div class="dok-waktu-label"><span id="dokAwal"></span><span id="dokAkhir"></span></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========== DAFTAR DOKUMENTASI ========== -->
+    <section class="dok-isi">
+      <p class="dok-ringkas" id="dokRingkas" aria-live="polite"></p>
+      <div id="dokDaftar"></div>
+      <div class="dok-lebih">
+        <button type="button" class="btn btn-line dok-lebih-btn" id="dokLebih" hidden>Tampilkan lebih banyak</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <img src="Logo-bem.png" alt="Logo BEM INSIS Indonesia">
+    <div>
+      <strong>BEM INSIS Indonesia</strong>
+      <p>Kabinet Inspire</p>
+      <p class="small">Instagram: @beminsisindonesia <br> Email: beminsisindonesia@gmail.com</p>
+      <p class="small"><a href="index.html" class="tautan-pengurus">&larr; Kembali ke beranda</a></p>
+    </div>
+  </footer>
+
+  <!-- ========== POP-UP FOTO (bisa maju/mundur) ========== -->
+  <div class="lightbox dok-lb" id="dokLb" hidden>
+    <div class="lightbox-box" role="dialog" aria-modal="true" aria-labelledby="dokLbJudul">
+      <button class="lightbox-close" id="dokLbTutup" aria-label="Tutup">&times;</button>
+      <div class="dok-media">
+        <div class="dok-kerangka" id="dokKerangka">
+          <div class="lightbox-img" id="dokLbFoto"></div>
+          <button type="button" class="dok-nav dok-prev" id="dokPrev" aria-label="Foto sebelumnya">&lsaquo;</button>
+          <button type="button" class="dok-nav dok-next" id="dokNext" aria-label="Foto berikutnya">&rsaquo;</button>
+        </div>
+      </div>
+      <h3 id="dokLbJudul"></h3>
+      <p id="dokLbMeta"></p>
+      <a class="btn btn-gold lb-album" id="dokLbAlbum" target="_blank" rel="noopener noreferrer" hidden>Lihat album lengkap</a>
+      <p class="dok-hitung" id="dokLbHitung"></p>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="dokumentasi.js"></script>
 </body>
 </html>

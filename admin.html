@@ -9,11 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-  
+
+  <!-- Ikon tab browser (favicon) dari logo BEM -->
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  
+
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="admin.css">
 
@@ -40,10 +41,10 @@
   <main class="admin-main">
     <p class="demo-banner">Mode demo: data tersimpan di browser ini saja dan belum terhubung ke server.</p>
 
-    <!-- Foto pilihan untuk dua roll di beranda -->
+    <!-- ========== FOTO PILIHAN UNTUK DUA ROLL DI BERANDA ========== -->
     <section class="panel">
       <h2>Foto pilihan beranda</h2>
-      <p class="muted kecil">Foto yang berjalan di beranda: roll pertama untuk ikhwan, roll kedua untuk akhwat. Pilih foto terbaik saja, dan pastikan semua yang ada di foto setuju fotonya dipublikasikan.</p>
+      <p class="muted kecil">Foto yang berjalan di beranda seperti klip film: roll pertama untuk ikhwan, roll kedua untuk akhwat. Pilih foto terbaik saja, dan pastikan semua yang ada di foto setuju fotonya dipublikasikan.</p>
       <form id="pilihanForm" novalidate>
         <label for="kelompok">Tampil di</label>
         <select id="kelompok">
@@ -54,8 +55,29 @@
         <label for="fotoPilihan">Foto</label>
         <input type="file" id="fotoPilihan" accept="image/*">
 
+        <label for="bingkai">Bentuk bingkai di roll</label>
+        <select id="bingkai">
+          <option value="asli">Sesuai ukuran asli foto</option>
+          <option value="potong">Seragam 4:3 (foto dipotong)</option>
+        </select>
+        <p class="muted kecil">"Sesuai ukuran asli" menampilkan seluruh foto tanpa dipotong, lebar bingkai mengikuti foto. "Seragam" membuat semua bingkai sama besar; kamu yang menentukan bagian foto yang tampil.</p>
+
+        <!-- Pratinjau untuk bingkai "sesuai ukuran asli" -->
+        <div class="preview" id="pratinjauAsli" hidden>
+          <img id="pratinjauAsliImg" alt="Pratinjau foto">
+        </div>
+
+        <!-- Alat potong untuk bingkai "seragam" -->
+        <div class="krop" id="kropArea" hidden>
+          <p class="muted kecil">Geser foto untuk memilih bagian yang tampil, dan gunakan penggeser untuk memperbesar.</p>
+          <div class="krop-bingkai" id="kropBingkai"><img id="kropImg" alt="Pratinjau potongan foto" draggable="false"></div>
+          <label for="kropZoom" class="kecil">Perbesar</label>
+          <input type="range" id="kropZoom" min="1" max="3" step="0.01" value="1">
+        </div>
+
         <label for="keterangan">Keterangan (opsional)</label>
         <input type="text" id="keterangan" maxlength="80" placeholder="Contoh: Seminar Nasional Tafsir 2026">
+        <p class="muted kecil">Tidak ditampilkan di layar; dipakai sebagai teks alternatif foto (untuk pembaca layar).</p>
 
         <p class="error" id="pilihanError" role="alert"></p>
         <button type="submit" class="btn btn-gold" id="simpanPilihanBtn">Simpan foto pilihan</button>
@@ -65,10 +87,10 @@
       <ul class="daftar" id="daftarPilihan"></ul>
     </section>
 
-    <!-- Form tambah dokumentasi (untuk halaman arsip lengkap yang sedang disusun) -->
+    <!-- ========== DOKUMENTASI UNTUK HALAMAN "SELURUH DOKUMENTASI" ========== -->
     <section class="panel">
       <h2>Tambah dokumentasi</h2>
-      <p class="muted kecil">Data ini akan tampil di halaman "Seluruh dokumentasi" yang sedang disusun.</p>
+      <p class="muted kecil">Data ini tampil di halaman "Seluruh dokumentasi", lengkap dengan filter kategori, divisi, dan tanggal.</p>
       <form id="tambahForm" novalidate>
         <label for="judul">Judul kegiatan</label>
         <input type="text" id="judul" maxlength="80" placeholder="Contoh: Seminar Nasional Tafsir" required>
@@ -80,17 +102,16 @@
           </div>
           <div>
             <label for="kategori">Kategori</label>
-            <select id="kategori">
-              <option value="akademik">Akademik</option>
-              <option value="sosial">Sosial</option>
-              <option value="keagamaan">Keagamaan</option>
-            </select>
+            <select id="kategori"></select>
           </div>
         </div>
 
+        <label for="divisi">Divisi penyelenggara (opsional)</label>
+        <select id="divisi"></select>
+
         <label for="foto">Foto sampul</label>
         <input type="file" id="foto" accept="image/*">
-        <p class="muted kecil">Pilih satu foto terbaik untuk mewakili kegiatan. Foto dikecilkan otomatis agar situs tetap ringan.</p>
+        <p class="muted kecil">Pilih satu foto terbaik untuk mewakili kegiatan. Foto dikecilkan otomatis (sisi terpanjang 1600 px) agar situs tetap ringan.</p>
         <div class="preview" id="preview" hidden>
           <img id="previewImg" alt="Pratinjau foto">
         </div>

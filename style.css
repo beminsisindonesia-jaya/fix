@@ -502,9 +502,12 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 @keyframes napas { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
 
 /* =====================================================
-   19. ROLL FOTO DI BAGIAN DOKUMENTASI
-   Dua baris foto penuh lebar: ikhwan bergerak kanan ke kiri,
-   akhwat kiri ke kanan. Berhenti saat kursor di atasnya.
+   19. ROLL FOTO BERGAYA KLIP FILM JADUL
+   Dua pita film penuh lebar: ikhwan bergerak kanan ke kiri,
+   akhwat kiri ke kanan. Tidak berhenti dan tidak bisa diklik.
+   Tiap foto berada dalam satu bingkai film: pita gelap dengan
+   lubang perforasi di atas dan bawah. Warna lubang (#F5F1E8)
+   sengaja sama dengan latar krem, supaya tampak berlubang.
    Kecepatan diatur di script.js (DETIK_PER_FOTO).
    ===================================================== */
 .roll-blok { margin: 0 -1.25rem; display: grid; gap: .9rem; }
@@ -515,37 +518,42 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 }
 .roll-label:first-child { margin-top: 0; }
 
-.roll {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-}
+.roll { overflow: hidden; pointer-events: none; -webkit-user-select: none; user-select: none; }
 .roll-track {
-  display: flex; gap: 1rem; width: max-content; padding-right: 1rem; /* sama dengan gap: putaran tanpa sambungan */
+  display: flex; width: max-content; background: #141414;
   animation: gulung-kiri var(--durasi, 50s) linear infinite; will-change: transform;
 }
 .roll-kanan .roll-track { animation-name: gulung-kanan; }
-.roll:hover .roll-track { animation-play-state: paused; }
 
-.roll-item {
-  flex: none; width: clamp(190px, 26vw, 300px); aspect-ratio: 4 / 3;
-  border: 0; padding: 0; border-radius: 16px; overflow: hidden; cursor: pointer;
+/* Satu bingkai film: pita gelap, lubang di atas dan bawah, foto di tengah.
+   Tinggi foto sama untuk semua; lebar mengikuti rasio asli foto (--rasio, diisi script.js).
+   Lubang disusun per 40px dan dibagi rata di tiap bingkai (background-repeat: space). */
+.roll { --tinggi-foto: clamp(150px, 17vw, 225px); }
+.roll-item { position: relative; flex: none; padding: 22px 7px; background: #141414; }
+.roll-item::before, .roll-item::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 22px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 22'%3E%3Crect x='10' y='6.5' width='20' height='9' rx='2.4' fill='%23F5F1E8'/%3E%3C/svg%3E");
+  background-repeat: space no-repeat; background-position: left center; background-size: 40px 22px;
+}
+.roll-item::before { top: 0; }
+.roll-item::after { bottom: 0; }
+
+.roll-foto {
+  width: calc(var(--tinggi-foto) * var(--rasio, 1.3333)); height: var(--tinggi-foto);
+  border-radius: 3px; overflow: hidden;
   display: grid; place-items: center;
   background: linear-gradient(135deg, #000, #3a2f1a); color: var(--emas);
   font-family: var(--font-judul); font-weight: 600;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
-  transition: transform .3s ease, box-shadow .3s ease;
 }
-.roll-item:hover { transform: scale(1.04); box-shadow: 0 10px 24px rgba(0, 0, 0, .28); }
-.roll-item img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }
-.roll-kosong { color: #666; padding: .5rem 1.25rem; }
+.roll-foto img { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-user-drag: none; }
+.roll-kosong { background: none; color: #666; padding: .5rem 1.25rem; }
 
 @keyframes gulung-kiri  { to { transform: translateX(-50%); } }
 @keyframes gulung-kanan { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 
-/* Tanpa animasi (mode hemat / pengguna mematikan animasi): baris bisa digeser dengan jari */
-.roll.diam { overflow-x: auto; -webkit-mask-image: none; mask-image: none; scroll-snap-type: x proximity; padding-bottom: .5rem; }
-.roll.diam .roll-track { animation: none; padding-left: 1.25rem; }
+/* Tanpa animasi (mode hemat / pengguna mematikan animasi): pita bisa digeser dengan jari */
+.roll.diam { pointer-events: auto; overflow-x: auto; scroll-snap-type: x proximity; }
+.roll.diam .roll-track { animation: none; }
 .roll.diam .roll-item { scroll-snap-align: start; }
 
 .roll-aksi { margin-top: 2.4rem; text-align: center; }
@@ -617,9 +625,17 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
   .navbar.scrolled .menu .menu-cta:hover { background: #2a2a2a; color: var(--emas-terang); }
 }
 
+@keyframes pil-turun { from { opacity: 0; transform: translateY(-24px) scale(.96); } to { opacity: 1; transform: none; } }
+
 /* ----- HP ----- */
 @media (max-width: 767px) {
   .navbar { padding: 0 .9rem; }
+
+  /* Navbar di HP: bentuknya langsung berganti (tanpa animasi lebar/tinggi yang berat
+     bersama scroll dan blur), lalu pil "turun" dengan gerakan ringan (opacity + posisi). */
+  .navbar, .brand img { transition: none; }
+  .navbar { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  .navbar.scrolled { animation: pil-turun .45s var(--ease) backwards; }
 
   .menu {
     position: absolute; top: calc(100% + 10px); left: .6rem; right: .6rem;
