@@ -93,18 +93,173 @@ if (!hematGerak && 'IntersectionObserver' in window) {
 }
 
 /* =====================================================
-   3. TUJUH NILAI: klik untuk membuka makna
+   3. TUJUH NILAI: segi tujuh yang menyala mengikuti scroll
+   Bagian #nilai dibuat tinggi dan panggungnya menempel di layar. Posisi scroll diubah
+   menjadi "waktu" (u) pada garis waktu di bawah; semua tampilan dihitung dari u.
+   Karena murni fungsi dari posisi scroll, scroll ke atas otomatis memutar balik gerakan.
    ===================================================== */
-const kartuNilai = document.querySelectorAll('.value');
+(function () {
+  const bagian = document.getElementById('nilai');
+  if (!bagian) return;
 
-kartuNilai.forEach(kartu => {
-  kartu.addEventListener('click', () => {
-    const sudahBuka = kartu.getAttribute('aria-expanded') === 'true';
-    // Tutup semua dulu, lalu buka yang diklik (kalau tadinya tertutup)
-    kartuNilai.forEach(k => k.setAttribute('aria-expanded', 'false'));
-    kartu.setAttribute('aria-expanded', !sudahBuka);
+  const panggung = bagian.querySelector('.nilai-panggung');
+  const kanvas = bagian.querySelector('.nilai-kanvas');
+  const svg = bagian.querySelector('.nilai-svg');
+  const tipis = bagian.querySelector('.nilai-tipis');
+  const sisi = [...bagian.querySelectorAll('.nilai-sisi')];
+  const titik = [...bagian.querySelectorAll('.nilai-titik')].map(g => ({ isi: g.querySelector('.isi'), cincin: g.querySelector('.cincin') }));
+  const label = [...bagian.querySelectorAll('.nilai-label')];
+  const percik = bagian.querySelector('.nilai-percik');
+  const inspire = bagian.querySelector('.nilai-inspire');
+  const petunjuk = bagian.querySelector('.nilai-petunjuk');
+  const keterangan = bagian.querySelector('.nilai-keterangan');
+
+  const titikXY = titik.map(t => [Number(t.isi.getAttribute('cx')), Number(t.isi.getAttribute('cy'))]);
+  const GESER = [[0, -26], [30, -4], [30, 0], [30, 26], [-30, 26], [-30, 0], [-30, -4]]; // jarak label dari sudutnya
+
+  // Keterangan untuk HP: satu blok per nilai, ditumpuk lalu dipudar-silangkan
+  const blok = label.map(l => {
+    const el = document.createElement('div');
+    el.className = 'nilai-ket-blok';
+    const n = document.createElement('strong');
+    n.textContent = l.querySelector('.nilai-nama').textContent;
+    const d = document.createElement('span');
+    d.textContent = l.querySelector('.nilai-ket').textContent;
+    el.append(n, d);
+    keterangan.appendChild(el);
+    return el;
   });
-});
+
+  // Letak label dihitung dari letak sudut; berbeda untuk laptop (nama di sekeliling) dan HP (huruf saja)
+  function susun() {
+    const hp = window.matchMedia('(max-width: 767px)').matches;
+    bagian.classList.toggle('mode-hp', hp);
+    const vb = hp ? [200, 110, 600, 570] : [0, 0, 1000, 760];
+    svg.setAttribute('viewBox', vb.join(' '));
+    kanvas.style.aspectRatio = `${vb[2]} / ${vb[3]}`;
+    label.forEach((el, k) => {
+      const [x, y] = titikXY[k];
+      let ax, ay;
+      if (hp) {
+        const dx = x - 500, dy = y - 420, p = Math.hypot(dx, dy);
+        ax = x + dx / p * 36; ay = y + dy / p * 36;               // huruf tepat di luar sudut
+      } else {
+        ax = x + GESER[k][0]; ay = y + GESER[k][1];
+      }
+      el.style.setProperty('--x', ((ax - vb[0]) / vb[2] * 100) + '%');
+      el.style.setProperty('--y', ((ay - vb[1]) / vb[3] * 100) + '%');
+    });
+  }
+  susun();
+
+  // Pengguna yang mematikan animasi: tampilkan segi tujuh lengkap, tanpa gerakan
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    bagian.classList.add('statis');
+    window.addEventListener('resize', susun);
+    return;
+  }
+  bagian.classList.add('berjalan');
+
+  /* ----- garis waktu (satuan bebas; total 19) ----- */
+  const A = [1.0, 3.2, 4.9, 6.6, 8.3, 10.0, 11.7];             // saat garis tiba di tiap sudut (sudut pertama langsung ada)
+  const MULAI_SISI = [2.2, 3.9, 5.6, 7.3, 9.0, 10.7, 12.8];    // saat garis ke-j mulai menjalar (yang ke-7 menutup bentuk)
+  const DURASI_SISI = [1, 1, 1, 1, 1, 1, 0.9];
+  const TOTAL = 19.0;
+
+  const seg = (u, a, b) => Math.min(1, Math.max(0, (u - a) / (b - a)));
+  const keluar = t => 1 - Math.pow(1 - t, 3);
+  const halus = t => t * t * (3 - 2 * t);
+  const masukKeluar = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const pantul = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+  function terapkan(u) {
+    const muncul = seg(u, 0, .5);
+    const pudar = keluar(seg(u, 14.6, 17.0));                    // segi tujuh memudar saat INSPIRE naik
+    const tampil = muncul * (1 - pudar);
+
+    kanvas.style.opacity = tampil;
+    kanvas.style.transform = `scale(${1 - .1 * pudar})`;
+    kanvas.style.setProperty('--kilau', Math.sin(Math.PI * seg(u, 13.7, 14.8)).toFixed(3));
+
+    // 1) segi tujuh tipis tergambar
+    tipis.style.strokeDashoffset = 1 - masukKeluar(seg(u, 0, 1.0));
+
+    // 2) garis tebal menjalar dari sudut ke sudut, dengan percikan di ujungnya
+    let jalan = -1, posisi = 0;
+    sisi.forEach((g, j) => {
+      const t = halus(seg(u, MULAI_SISI[j], MULAI_SISI[j] + DURASI_SISI[j]));
+      g.style.strokeDashoffset = 1 - t;
+      g.style.opacity = t > 0 ? 1 : 0;
+      if (t > 0 && t < 1) { jalan = j; posisi = t; }
+    });
+    if (jalan >= 0) {
+      const [x1, y1] = titikXY[jalan], [x2, y2] = titikXY[(jalan + 1) % 7];
+      percik.setAttribute('cx', x1 + (x2 - x1) * posisi);
+      percik.setAttribute('cy', y1 + (y2 - y1) * posisi);
+      percik.style.opacity = 1;
+    } else {
+      percik.style.opacity = 0;
+    }
+
+    // 3) buletan muncul begitu garis tiba; cincin cahaya memancar sekali
+    titik.forEach((t, k) => {
+      const s = seg(u, A[k], A[k] + .35);
+      t.isi.style.transform = `scale(${s <= 0 ? 0 : pantul(s)})`;
+      const r = seg(u, A[k], A[k] + .8);
+      t.cincin.style.transform = `scale(${1 + 3 * keluar(r)})`;
+      t.cincin.style.opacity = r > 0 && r < 1 ? (1 - r) * .85 : 0;
+    });
+
+    // 4) nilai dan deskripsinya naik dari bawah setelah buletannya muncul
+    const lp = label.map((el, k) => {
+      const p = seg(u, A[k] + .1, A[k] + .75);
+      el.style.opacity = p;
+      el.style.setProperty('--naik', ((1 - keluar(p)) * 28) + 'px');
+      return p;
+    });
+    blok.forEach((el, k) => {                                    // keterangan HP: yang lama memudar saat yang baru naik
+      const berikut = k < 6 ? lp[k + 1] : 0;
+      el.style.opacity = lp[k] * (1 - berikut) * tampil;
+      el.style.transform = `translateY(${(1 - keluar(lp[k])) * 18 - keluar(berikut) * 14}px)`;
+    });
+
+    // 5) tulisan INSPIRE naik dari bawah ke tengah, segi tujuh memudar
+    const naik = seg(u, 14.6, 17.6);
+    inspire.style.opacity = keluar(seg(u, 14.6, 15.9));
+    inspire.style.transform = `translate(-50%, calc(-50% + ${(1 - masukKeluar(naik)) * panggung.clientHeight * .62}px)) scale(${1.14 - .14 * keluar(naik)})`;
+    bagian.classList.toggle('selesai', u >= 17.8);               // efek kilau dan denyut setelah tiba di tengah
+
+    // 6) cahaya latar dan petunjuk "gulir"
+    panggung.style.setProperty('--glow', (.2 + .8 * seg(u, 1, 13.7) + .7 * seg(u, 15.5, 17.8)).toFixed(3));
+    petunjuk.style.opacity = seg(u, .5, 1.2) * (1 - seg(u, 2.4, 3.2));
+  }
+
+  /* ----- posisi scroll -> waktu ----- */
+  let terakhir = -1, menunggu = false;
+  function hitung() {
+    menunggu = false;
+    const tinggi = panggung.clientHeight;
+    const kotak = bagian.getBoundingClientRect();
+    const awal = .4 * tinggi;                                    // animasi mulai saat bagian ini baru 40% masuk layar
+    const total = bagian.offsetHeight - tinggi + awal;
+    const u = Math.min(1, Math.max(0, (awal - kotak.top) / total)) * TOTAL;
+    if (Math.abs(u - terakhir) < 0.0005) return;
+    terakhir = u;
+    terapkan(u);
+  }
+  function jadwalkan() { if (!menunggu) { menunggu = true; requestAnimationFrame(hitung); } }
+
+  window.addEventListener('scroll', jadwalkan, { passive: true });
+  // Di HP, bilah alamat yang muncul/hilang saat scroll juga memicu "resize". Letak label hanya
+  // disusun ulang bila LEBAR layar berubah (misalnya HP diputar), supaya scroll tetap ringan.
+  let lebarSusun = window.innerWidth;
+  window.addEventListener('resize', () => {
+    if (window.innerWidth !== lebarSusun) { lebarSusun = window.innerWidth; susun(); }
+    terakhir = -1;
+    jadwalkan();
+  });
+  hitung();
+})();
 
 /* =====================================================
    4. ROLL FOTO: dua baris foto yang berjalan berlawanan arah

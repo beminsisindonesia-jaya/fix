@@ -122,3 +122,38 @@ body.admin { background: var(--hitam); color: var(--krem); min-height: 100vh; }
   pointer-events: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none;
 }
 .admin input[type="range"] { padding: 0; background: none; border: 0; accent-color: var(--emas); width: min(100%, 360px); }
+
+/* =====================================================
+   LATAR ROLL FILM MIRING (45 derajat) untuk halaman admin & login
+   Dibuat oleh latar-film.js. Hanya dekorasi: tidak bisa diklik, dibuat redup,
+   dan diberi lapisan gelap agar isian form tetap mudah dibaca.
+   ===================================================== */
+.latar-film { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.latar-film::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(18, 18, 18, .78) 0%, rgba(18, 18, 18, .4) 75%);
+}
+.film-miring {
+  position: absolute; left: 50%; top: 50%; width: var(--S, 2000px); height: var(--S, 2000px);
+  transform: translate(-50%, -50%) rotate(-45deg);
+  display: flex; flex-direction: column; justify-content: center; gap: 26px; opacity: .7;
+}
+.film-jalur { position: relative; flex: none; height: 156px; }
+.film-pita {
+  position: absolute; left: 0; top: 0; height: 100%; width: calc(100% + 840px);
+  background-color: #241f16;
+  background-image: var(--lubang), var(--lubang), var(--bingkai);
+  background-repeat: repeat-x;
+  background-position: 0 0, 0 100%, 0 50%;
+  background-size: 40px 18px, 40px 18px, 210px 120px;
+  animation: film-kiri var(--durasi, 28s) linear infinite; will-change: transform;
+}
+.film-jalur:nth-child(even) .film-pita { animation-name: film-kanan; }
+/* 840 px = kelipatan terkecil dari lebar bingkai (210 px) dan jarak lubang (40 px): putaran tanpa sambungan */
+@keyframes film-kiri  { to { transform: translateX(-840px); } }
+@keyframes film-kanan { from { transform: translateX(-840px); } to { transform: none; } }
+
+/* Isi halaman berada di atas latar. Panel dibuat hampir solid (tanpa blur) agar ringan dan terbaca. */
+.admin-main, .login-wrap { position: relative; z-index: 1; }
+.panel { background: rgba(24, 24, 26, .9); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.admin-bar { background: rgba(18, 18, 18, .92); -webkit-backdrop-filter: none; backdrop-filter: none; }

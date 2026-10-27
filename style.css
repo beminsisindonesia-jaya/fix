@@ -688,3 +688,162 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 .hemat .menu { background: rgba(24, 24, 26, .97); }
 .hemat .navbar.scrolled .menu { background: rgba(245, 241, 232, .98); }
 .hemat body.menu-terbuka::after { background: rgba(0, 0, 0, .55); }
+
+/* =====================================================
+   21. SETIAP BAGIAN SETINGGI LAYAR
+   Hero, Tentang, Nilai, Dokumentasi, dan Aspirasi minimal setinggi layar yang
+   terlihat (svh = tinggi layar saat bilah alamat HP tampil, jadi tidak pernah
+   melebihi layar). Bila isinya lebih tinggi, bagian itu tumbuh mengikuti isi.
+   vh disertakan sebagai cadangan untuk browser lama.
+   ===================================================== */
+.hero { min-height: 100vh; min-height: 100svh; }
+.section {
+  min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.section > .wrap { width: 100%; }
+
+/* Roll foto menyesuaikan tinggi layar agar judul, dua roll, dan tombol muat dalam satu layar */
+.roll { --tinggi-foto: clamp(120px, min(17vw, 17vh), 225px); }
+
+/* Layar yang pendek (laptop kecil, HP): jarak dirapatkan agar isi lebih mudah muat dalam satu layar.
+   Isi yang tetap lebih tinggi dari layar tidak dipotong: bagian itu tumbuh dan bisa di-scroll. */
+@media (max-height: 900px) {
+  .roll { --tinggi-foto: clamp(110px, min(15vw, 16vh), 225px); }
+  .section { padding-bottom: 2.5rem; }
+  .roll-blok { gap: .6rem; }
+  .roll-label { margin-top: .5rem; }
+  .roll-aksi { margin-top: 1.2rem; }
+  .hero { padding-top: 92px; padding-bottom: 2rem; }
+  .pilar { margin-top: 1.8rem; }
+}
+@media (max-width: 767px) {
+  .hero { padding-top: 92px; padding-bottom: 2rem; }
+  .pilar { margin-top: 1.6rem; gap: .6rem; }
+  .pilar-item { padding: .75rem 1rem; }
+  .pilar-ket { font-size: .82rem; }
+  .tentang-logo .logo-stage { width: min(58vw, 240px); }
+}
+
+/* =====================================================
+   22. BAGIAN NILAI: SEGI TUJUH YANG MENYALA MENGIKUTI SCROLL
+   Bagian ini dibuat tinggi (class "berjalan", dipasang script.js) dan panggungnya
+   "menempel" di layar. Posisi scroll menentukan tahap animasi, jadi scroll ke atas
+   memutar balik gerakannya. Tanpa JavaScript atau dengan animasi dimatikan, yang
+   tampil adalah segi tujuh lengkap (tanpa tulisan INSPIRE).
+   ===================================================== */
+.nilai { position: relative; background: var(--hitam); color: var(--krem); }
+.nilai.berjalan { height: 600vh; height: 600svh; }
+
+.nilai-panggung {
+  --glow: 0;
+  position: relative; display: grid; place-items: center; align-content: center;
+  min-height: 100vh; min-height: 100svh; padding: 78px 1rem 40px; overflow: hidden;
+}
+.nilai.berjalan .nilai-panggung { position: sticky; top: 0; height: 100vh; height: 100svh; min-height: 0; }
+
+/* Latar: cahaya emas yang makin terang seiring nilai menyala + titik-titik halus yang memudar ke tepi */
+.nilai-panggung::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 50% at 50% 50%, rgba(224, 185, 106, calc(var(--glow) * .16)), transparent 72%),
+    radial-gradient(rgba(224, 185, 106, .13) 1px, transparent 1.4px) 0 0 / 34px 34px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
+}
+/* Denyut cahaya satu kali saat INSPIRE tiba di tengah */
+.nilai-panggung::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 22vmin; height: 22vmin;
+  border: 2px solid rgba(224, 185, 106, .55); border-radius: 50%; pointer-events: none;
+  transform: translate(-50%, -50%) scale(0); opacity: 0;
+}
+.nilai.selesai .nilai-panggung::after { animation: denyut 2.6s ease-out 1; }
+@keyframes denyut {
+  from { transform: translate(-50%, -50%) scale(.2); opacity: .9; }
+  to   { transform: translate(-50%, -50%) scale(7); opacity: 0; }
+}
+
+/* ---------- kanvas: segi tujuh + label di sekelilingnya ---------- */
+.nilai-kanvas {
+  position: relative; container-type: inline-size; aspect-ratio: 1000 / 760;
+  width: min(92vw, 1000px, calc((100vh - 130px) * 1.316));
+  width: min(92vw, 1000px, calc((100svh - 130px) * 1.316));
+}
+.nilai-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  filter: drop-shadow(0 0 calc(5px + var(--kilau, 0) * 16px) rgba(236, 190, 90, calc(.3 + var(--kilau, 0) * .5)));
+}
+.nilai-tipis { fill: none; stroke: var(--emas); stroke-width: 1.4; opacity: .75; stroke-dasharray: 1 2; }
+.nilai-sisi { fill: none; stroke: var(--emas-terang); stroke-width: 4.5; stroke-linecap: round; stroke-dasharray: 1 2; }
+.nilai-titik .isi { fill: var(--emas-terang); stroke: #ffe9b8; stroke-width: 2.5; transform-box: fill-box; transform-origin: center; }
+.nilai-titik .cincin { fill: none; stroke: var(--emas-terang); stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.nilai-percik { fill: #fff4d6; opacity: 0; }
+
+.nilai-label {
+  position: absolute; left: var(--x); top: var(--y);
+  transform: translate(var(--tx, 0), var(--ty, 0)) translateY(var(--naik, 0px));
+  max-width: 25%; text-align: left;
+}
+.nilai-label.pos-atas  { --tx: -50%; --ty: -100%; text-align: center; max-width: 36%; }
+.nilai-label.pos-kanan { --tx: 0;    --ty: -50%; }
+.nilai-label.pos-bawah { --tx: -50%; --ty: 0;    text-align: center; max-width: 30%; }
+.nilai-label.pos-kiri  { --tx: -100%; --ty: -50%; text-align: right; }
+.nilai-nama {
+  display: block; font-family: var(--font-judul); font-weight: 700; letter-spacing: .02em; line-height: 1.15;
+  color: var(--emas-terang); font-size: clamp(.8rem, 2vw, 1.4rem); font-size: clamp(.8rem, 2.1cqw, 1.5rem);
+}
+.nilai-ket { display: block; margin-top: .15em; color: var(--krem); opacity: .92; line-height: 1.35;
+  font-size: clamp(.7rem, 1.5vw, 1rem); font-size: clamp(.7rem, 1.6cqw, 1.05rem); }
+.nilai-huruf { display: none; }
+
+/* ---------- tulisan INSPIRE ---------- */
+.nilai-inspire {
+  position: absolute; left: 50%; top: 50%; opacity: 0; white-space: nowrap; line-height: 1;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-judul); font-weight: 800; letter-spacing: .02em;
+  font-size: clamp(3rem, 13.5vw, 11rem);
+  background:
+    linear-gradient(105deg, transparent 42%, rgba(255, 244, 214, .6) 50%, transparent 58%),
+    linear-gradient(95deg, #f7c95a 0%, #e1a92f 30%, #b97f14 65%, #8f5f08 100%);
+  background-size: 260% 100%, 100% 100%; background-position: 160% 0, 0 0; background-repeat: no-repeat;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55));
+}
+/* Efek tambahan setelah INSPIRE tiba di tengah: kilau yang menyapu huruf, lalu berulang pelan */
+.nilai.selesai .nilai-inspire { animation: kilau-inspire 4.2s ease-in-out .3s infinite; }
+@keyframes kilau-inspire { 0% { background-position: 160% 0, 0 0; } 55%, 100% { background-position: -60% 0, 0 0; } }
+
+.nilai-petunjuk {
+  position: absolute; left: 0; right: 0; bottom: 1.4rem; text-align: center; opacity: 0;
+  font-size: .85rem; letter-spacing: .08em; color: var(--emas-terang);
+}
+.nilai-petunjuk::after { content: ""; display: block; width: 8px; height: 8px; margin: .5rem auto 0;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); animation: turun 1.6s ease-in-out infinite; }
+@keyframes turun { 0%, 100% { transform: translateY(0) rotate(45deg); opacity: .4; } 50% { transform: translateY(6px) rotate(45deg); opacity: 1; } }
+
+/* ---------- HP: huruf di tiap sudut + keterangan di bawah segi tujuh ---------- */
+.nilai-keterangan { display: none; position: relative; width: min(90vw, 420px); height: 6rem; margin-top: .6rem; }
+.nilai-ket-blok { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; text-align: center; opacity: 0; }
+.nilai-ket-blok strong { font-family: var(--font-judul); font-size: 1.5rem; color: var(--emas-terang); line-height: 1.2; }
+.nilai-ket-blok span { margin-top: .2rem; font-size: .98rem; color: var(--krem); }
+
+.nilai.mode-hp .nilai-kanvas { width: min(94vw, 460px, calc((100vh - 300px) * 1.05)); width: min(94vw, 460px, calc((100svh - 300px) * 1.05)); }
+.nilai.mode-hp .nilai-nama, .nilai.mode-hp .nilai-ket { display: none; }
+.nilai.mode-hp .nilai-huruf { display: block; font-family: var(--font-judul); font-weight: 700; font-size: 1.15rem; color: var(--emas-terang); }
+.nilai.mode-hp .nilai-label { --tx: -50%; --ty: -50%; max-width: none; text-align: center; }
+.nilai.mode-hp .nilai-keterangan { display: block; }
+.nilai.mode-hp .nilai-inspire { font-size: clamp(2.6rem, 19vw, 5.2rem); }
+
+/* Pembaca layar selalu mendapat daftar lengkap */
+.sr-saja { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Tanpa animasi (pengguna mematikan animasi): tampil statis dan lengkap */
+.nilai.statis .nilai-inspire, .nilai.statis .nilai-petunjuk, .nilai.statis .nilai-keterangan { display: none; }
+.nilai.statis.mode-hp .sr-saja {
+  position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal;
+  list-style: none; text-align: center; margin-top: 1rem; font-size: .95rem; line-height: 1.7;
+}
+.nilai.statis.mode-hp .sr-saja strong { color: var(--emas-terang); }
+
+/* Perangkat lemah: tanpa cahaya berpendar pada garis */
+.hemat .nilai-svg { filter: none; }

@@ -174,3 +174,25 @@ body.lb-terbuka { overflow: hidden; }
 @media (max-width: 639px) {
   .dok-badge { font-size: .64rem; padding: .15rem .5rem; left: .45rem; top: .45rem; }
 }
+
+/* ---------- Navbar sederhana: hanya satu tombol "Kembali ke beranda" (tanpa menu burger) ---------- */
+.navbar-sederhana .menu {
+  position: static; display: flex; padding: 0; margin: 0; border: 0; border-radius: 0;
+  background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  opacity: 1; visibility: visible; transform: none; transition: none;
+}
+.navbar-sederhana .menu a { opacity: 1; transform: none; border: 0; padding: 0; font-size: 1rem; font-weight: 500; }
+.navbar-sederhana .menu .menu-cta {
+  margin: 0; padding: .5rem 1.2rem !important; font-size: .95rem; text-align: center; white-space: nowrap;
+  background: transparent; color: var(--emas); border: 2px solid var(--emas); border-radius: 999px;
+  transition: background .25s ease, color .25s ease;
+}
+.navbar-sederhana .menu .menu-cta:hover { background: var(--emas); color: var(--hitam); }
+.navbar-sederhana.scrolled .menu .menu-cta { background: #121212; border-color: #121212; color: var(--emas-terang); }
+.navbar-sederhana.scrolled .menu .menu-cta:hover { background: #2a2a2a; color: var(--emas-terang); }
+
+/* HP kecil: sembunyikan tulisan di samping logo agar tombol muat */
+@media (max-width: 519px) {
+  .navbar-sederhana .brand span { display: none; }
+  .navbar-sederhana .menu .menu-cta { padding: .45rem 1rem !important; font-size: .9rem; }
+}

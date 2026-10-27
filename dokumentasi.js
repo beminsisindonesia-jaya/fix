@@ -17,22 +17,10 @@ if (parameter === '1' || (perangkatLemah && parameter !== '0')) {
 }
 
 /* =====================================================
-   1. NAVBAR (sama seperti beranda): pil mengambang + menu HP
+   1. NAVBAR: berubah menjadi pil mengambang saat di-scroll
+   (halaman ini hanya punya satu tombol, "Kembali ke beranda")
    ===================================================== */
-const menuBtn = document.getElementById('menuBtn');
-const menu = document.getElementById('menu');
 const navbar = document.getElementById('navbar');
-
-function aturMenu(buka) {
-  menu.classList.toggle('open', buka);
-  document.body.classList.toggle('menu-terbuka', buka);
-  menuBtn.setAttribute('aria-expanded', buka);
-  menuBtn.setAttribute('aria-label', buka ? 'Tutup menu' : 'Buka menu');
-}
-menuBtn.addEventListener('click', () => aturMenu(!menu.classList.contains('open')));
-menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => aturMenu(false)));
-document.addEventListener('click', e => { if (e.target === document.body) aturMenu(false); });
-window.matchMedia('(min-width: 768px)').addEventListener('change', e => { if (e.matches) aturMenu(false); });
 
 let navMengambang = false;
 function aturNavbar() {
@@ -350,7 +338,7 @@ lbNext.addEventListener('click', () => geser(1));
 lbTutup.addEventListener('click', tutupLb);
 lb.addEventListener('click', e => { if (e.target === lb) tutupLb(); });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { aturMenu(false); if (!lb.hidden) tutupLb(); }
+  if (e.key === 'Escape' && !lb.hidden) tutupLb();
   if (lb.hidden) return;
   if (e.key === 'ArrowLeft') geser(-1);
   if (e.key === 'ArrowRight') geser(1);
