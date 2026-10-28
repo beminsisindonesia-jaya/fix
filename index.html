@@ -201,6 +201,20 @@
         <!-- Keterangan nilai yang sedang tampil (hanya di HP, karena di layar sempit nama tidak muat di sekeliling segi tujuh) -->
         <div class="nilai-keterangan" aria-hidden="true"></div>
 
+        <!-- Efek di belakang INSPIRE: cahaya, tiga gelombang cincin, dan halo berputar (hanya muncul setelah INSPIRE tiba di tengah) -->
+        <div class="nilai-efek" aria-hidden="true">
+          <span class="nilai-cahaya"></span>
+          <span class="nilai-gema g1"></span><span class="nilai-gema g2"></span><span class="nilai-gema g3"></span>
+          <svg class="nilai-halo h1" viewBox="0 0 200 200" focusable="false">
+            <circle cx="100" cy="100" r="96" stroke-width=".8"/>
+            <circle cx="100" cy="100" r="88" stroke-width="5" stroke-dasharray=".7 3.3" pathLength="360"/>
+          </svg>
+          <svg class="nilai-halo h2" viewBox="0 0 200 200" focusable="false">
+            <circle cx="100" cy="100" r="80" stroke-width="1.2"/>
+            <circle cx="100" cy="100" r="72" stroke-width="3" stroke-linecap="round" stroke-dasharray=".01 3.99" pathLength="360"/>
+          </svg>
+        </div>
+
         <div class="nilai-inspire" aria-hidden="true">INSPIRE</div>
         <p class="nilai-petunjuk" aria-hidden="true">Gulir untuk melanjutkan</p>
 
@@ -248,6 +262,12 @@
           <label for="nama">Nama (opsional)</label>
           <input type="text" id="nama" name="nama" placeholder="Boleh anonim" autocomplete="name">
 
+          <!-- Kolom jebakan untuk bot: disembunyikan dari manusia, jangan dihapus -->
+          <div class="jebakan" aria-hidden="true">
+            <label for="situs">Situs web</label>
+            <input type="text" id="situs" name="situs" tabindex="-1" autocomplete="off">
+          </div>
+
           <label for="pesan">Pesan</label>
           <textarea id="pesan" name="pesan" rows="5" maxlength="500" placeholder="Tulis aspirasimu di sini" required></textarea>
           <div class="form-meta">
@@ -284,6 +304,22 @@
   </div>
 
   <!-- Notifikasi kecil -->
+  <!-- ========== POP-UP KONFIRMASI ASPIRASI ========== -->
+  <div class="lightbox" id="konfirmasi" hidden>
+    <div class="lightbox-box konfirmasi-box" role="dialog" aria-modal="true" aria-labelledby="konfJudul">
+      <h3 id="konfJudul">Kirim aspirasi ini?</h3>
+      <p class="konf-info">Periksa sekali lagi. Aspirasi yang sudah terkirim tidak bisa diubah atau ditarik.</p>
+      <dl class="konf-ringkas">
+        <dt>Nama</dt><dd id="konfNama"></dd>
+        <dt>Pesan</dt><dd id="konfPesan"></dd>
+      </dl>
+      <div class="konf-aksi">
+        <button type="button" class="btn btn-line" id="konfUbah">Periksa lagi</button>
+        <button type="button" class="btn btn-gold" id="konfKirim">Ya, kirim</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="api.js"></script>

@@ -94,9 +94,11 @@ if (!hematGerak && 'IntersectionObserver' in window) {
 
 /* =====================================================
    3. TUJUH NILAI: segi tujuh yang menyala mengikuti scroll
-   Bagian #nilai dibuat tinggi dan panggungnya menempel di layar. Posisi scroll diubah
-   menjadi "waktu" (u) pada garis waktu di bawah; semua tampilan dihitung dari u.
-   Karena murni fungsi dari posisi scroll, scroll ke atas otomatis memutar balik gerakan.
+   Bagian #nilai dibuat tinggi dan panggungnya menempel di layar. Posisi scroll diubah menjadi
+   "waktu" (u) pada garis waktu di bawah; semua tampilan dihitung dari u. Karena murni fungsi
+   dari posisi scroll, scroll ke atas otomatis memutar balik gerakan.
+   Garis waktu berakhir saat cincin di belakang INSPIRE hampir menyentuh sudut layar, jadi
+   bagian berikutnya (Dokumentasi) baru terlihat setelah itu.
    ===================================================== */
 (function () {
   const bagian = document.getElementById('nilai');
@@ -113,6 +115,8 @@ if (!hematGerak && 'IntersectionObserver' in window) {
   const inspire = bagian.querySelector('.nilai-inspire');
   const petunjuk = bagian.querySelector('.nilai-petunjuk');
   const keterangan = bagian.querySelector('.nilai-keterangan');
+  const cahaya = bagian.querySelector('.nilai-cahaya');
+  const halo = [...bagian.querySelectorAll('.nilai-halo')];
 
   const titikXY = titik.map(t => [Number(t.isi.getAttribute('cx')), Number(t.isi.getAttribute('cy'))]);
   const GESER = [[0, -26], [30, -4], [30, 0], [30, 26], [-30, 26], [-30, 0], [-30, -4]]; // jarak label dari sudutnya
@@ -160,16 +164,44 @@ if (!hematGerak && 'IntersectionObserver' in window) {
   }
   bagian.classList.add('berjalan');
 
-  /* ----- garis waktu (satuan bebas; total 19) ----- */
+  /* ----- skala cincin: cincin pertama berakhir hampir menyentuh sudut layar -----
+     Puncak cahaya cincin berada di 62,5% jari-jari gradasi (jari-jari gradasi = setengah diagonal
+     kotaknya = 15 vmin x akar 2), jadi jari-jari cincin pada skala 1 = 13,26 vmin. */
+  let skalaAkhir = 10, vminPx = 10;
+  function ukurCincin() {
+    vminPx = Math.min(window.innerWidth, window.innerHeight) / 100;
+    const setengahDiagonal = Math.hypot(panggung.clientWidth, panggung.clientHeight) / 2;
+    skalaAkhir = (.92 * setengahDiagonal) / (13.26 * vminPx);
+    const tebal = Math.max(2, vminPx * .3);                      // garis tetap tipis di semua ukuran layar
+    inti.setAttribute('stroke-width', tebal.toFixed(2));
+    aura.setAttribute('stroke-width', (tebal * 5).toFixed(2));
+  }
+
+  /* Satu cincin berupa GARIS tipis (SVG, tebalnya tetap) yang memancar dari belakang INSPIRE.
+     Garis ini tidak memudar di tengah jalan; baru memudar saat sudah hampir menyentuh sudut layar. */
+  const NS = 'http://www.w3.org/2000/svg';
+  const garis = document.createElementNS(NS, 'svg');
+  garis.setAttribute('class', 'nilai-garis');
+  garis.setAttribute('width', '1');
+  garis.setAttribute('height', '1');
+  garis.setAttribute('aria-hidden', 'true');
+  const aura = document.createElementNS(NS, 'circle');          // pendar lembut di sekeliling garis
+  aura.setAttribute('class', 'aura');
+  const inti = document.createElementNS(NS, 'circle');          // garisnya
+  inti.setAttribute('class', 'inti');
+  garis.append(aura, inti);
+  bagian.querySelector('.nilai-efek').appendChild(garis);
+  ukurCincin();
+
+  /* ----- garis waktu (satuan bebas; total 21,5) ----- */
   const A = [1.0, 3.2, 4.9, 6.6, 8.3, 10.0, 11.7];             // saat garis tiba di tiap sudut (sudut pertama langsung ada)
   const MULAI_SISI = [2.2, 3.9, 5.6, 7.3, 9.0, 10.7, 12.8];    // saat garis ke-j mulai menjalar (yang ke-7 menutup bentuk)
   const DURASI_SISI = [1, 1, 1, 1, 1, 1, 0.9];
-  const TOTAL = 19.0;
+  const TOTAL = 21.5;                                          // cincin pertama tiba di dekat sudut layar tepat di akhir
 
   const seg = (u, a, b) => Math.min(1, Math.max(0, (u - a) / (b - a)));
   const keluar = t => 1 - Math.pow(1 - t, 3);
-  const halus = t => t * t * (3 - 2 * t);
-  const masukKeluar = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const masukKeluar = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);   // lambat - cepat - lambat
   const pantul = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
 
   function terapkan(u) {
@@ -184,10 +216,10 @@ if (!hematGerak && 'IntersectionObserver' in window) {
     // 1) segi tujuh tipis tergambar
     tipis.style.strokeDashoffset = 1 - masukKeluar(seg(u, 0, 1.0));
 
-    // 2) garis tebal menjalar dari sudut ke sudut, dengan percikan di ujungnya
+    // 2) garis tebal menjalar dari sudut ke sudut (lambat-cepat-lambat), dengan percikan di ujungnya
     let jalan = -1, posisi = 0;
     sisi.forEach((g, j) => {
-      const t = halus(seg(u, MULAI_SISI[j], MULAI_SISI[j] + DURASI_SISI[j]));
+      const t = masukKeluar(seg(u, MULAI_SISI[j], MULAI_SISI[j] + DURASI_SISI[j]));
       g.style.strokeDashoffset = 1 - t;
       g.style.opacity = t > 0 ? 1 : 0;
       if (t > 0 && t < 1) { jalan = j; posisi = t; }
@@ -227,9 +259,20 @@ if (!hematGerak && 'IntersectionObserver' in window) {
     const naik = seg(u, 14.6, 17.6);
     inspire.style.opacity = keluar(seg(u, 14.6, 15.9));
     inspire.style.transform = `translate(-50%, calc(-50% + ${(1 - masukKeluar(naik)) * panggung.clientHeight * .62}px)) scale(${1.14 - .14 * keluar(naik)})`;
-    bagian.classList.toggle('selesai', u >= 17.8);               // efek kilau dan denyut setelah tiba di tengah
+    bagian.classList.toggle('selesai', u >= 17.8);               // kilau pada huruf dan putaran halo
 
-    // 6) cahaya latar dan petunjuk "gulir"
+    // 6) setelah INSPIRE di tengah: cahaya menyala, satu garis cincin memancar ke arah sudut layar, halo muncul
+    const kilat = seg(u, 17.4, 18.3);
+    cahaya.style.opacity = (kilat * (.95 - .55 * seg(u, 18.3, 20.5))).toFixed(3);
+    cahaya.style.transform = `scale(${(.3 + .95 * seg(u, 17.4, 21.5)).toFixed(3)})`;
+    const rg = seg(u, 17.6, 21.5);                               // kemajuan cincin: 0 = di tengah, 1 = hampir di sudut layar
+    const radius = 13.26 * vminPx * (.15 + (skalaAkhir - .15) * (1 - Math.pow(1 - rg, 1.7)));
+    inti.setAttribute('r', radius.toFixed(1));
+    aura.setAttribute('r', radius.toFixed(1));
+    garis.style.opacity = (.95 * seg(rg, 0, .04) * (1 - masukKeluar(seg(rg, .72, 1)))).toFixed(3);   // penuh, memudar hanya di ujung perjalanan
+    halo.forEach(el => { el.style.opacity = (.5 * seg(u, 17.6, 19.0)).toFixed(3); });
+
+    // 7) cahaya latar dan petunjuk "gulir"
     panggung.style.setProperty('--glow', (.2 + .8 * seg(u, 1, 13.7) + .7 * seg(u, 15.5, 17.8)).toFixed(3));
     petunjuk.style.opacity = seg(u, .5, 1.2) * (1 - seg(u, 2.4, 3.2));
   }
@@ -255,6 +298,7 @@ if (!hematGerak && 'IntersectionObserver' in window) {
   let lebarSusun = window.innerWidth;
   window.addEventListener('resize', () => {
     if (window.innerWidth !== lebarSusun) { lebarSusun = window.innerWidth; susun(); }
+    ukurCincin();
     terakhir = -1;
     jadwalkan();
   });
@@ -408,6 +452,41 @@ function tampilkanToast(teks) {
   setTimeout(() => toast.classList.remove('show'), 3200);
 }
 
+/* ----- pop-up konfirmasi + pengiriman -----
+   Alur: isi form -> "Kirim aspirasi" -> pop-up memperlihatkan isi -> "Ya, kirim" baru dikirim sungguhan.
+   Pelindung: pop-up tidak bisa terkirim dua kali, jeda antar-kiriman, dan kolom jebakan untuk bot. */
+const konfirmasi = document.getElementById('konfirmasi');
+const konfNama = document.getElementById('konfNama');
+const konfPesan = document.getElementById('konfPesan');
+const konfUbah = document.getElementById('konfUbah');
+const konfKirim = document.getElementById('konfKirim');
+const tombolKirimForm = form.querySelector('button[type="submit"]');
+const KUNCI_JEDA = 'inspire_kirim_terakhir';
+const JEDA_DETIK = 30;                      // jarak minimal antar-kiriman dari satu browser
+let dataTertunda = null;
+let sedangKirim = false;
+
+function sisaJeda() {
+  try {
+    const t = Number(localStorage.getItem(KUNCI_JEDA)) || 0;
+    return Math.max(0, Math.ceil((t + JEDA_DETIK * 1000 - Date.now()) / 1000));
+  } catch (err) { return 0; }
+}
+
+function bukaKonfirmasi(data) {
+  dataTertunda = data;
+  konfNama.textContent = data.nama;         // textContent: aman dari kode berbahaya
+  konfPesan.textContent = data.pesan;
+  konfirmasi.hidden = false;
+  konfUbah.focus();                         // fokus awal di "Periksa lagi" supaya Enter tidak langsung mengirim
+}
+function tutupKonfirmasi(kembaliKeForm) {
+  konfirmasi.hidden = true;
+  dataTertunda = null;
+  if (kembaliKeForm) pesan.focus(); else tombolKirimForm.focus();
+}
+
+// Langkah 1: validasi, lalu tampilkan pop-up (belum dikirim)
 form.addEventListener('submit', e => {
   e.preventDefault(); // mencegah halaman reload
 
@@ -417,20 +496,61 @@ form.addEventListener('submit', e => {
     pesan.focus();
     return;
   }
-
-  const data = {
-    nama: form.nama.value.trim() || 'Anonim',
-    pesan: pesan.value.trim()
-  };
-
-  // TODO (Hadi): kirim `data` ke server, contohnya:
-  // fetch('/api/aspirasi', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) })
-  console.log('Aspirasi siap dikirim:', data);
-
-  form.reset();
-  counter.textContent = '0 / 500';
-  tampilkanToast('Aspirasi terkirim. Terima kasih!');
+  const tunggu = sisaJeda();
+  if (tunggu > 0) {
+    tampilkanToast(`Aspirasi sebelumnya baru terkirim. Tunggu ${tunggu} detik lagi.`);
+    return;
+  }
+  bukaKonfirmasi({ nama: form.nama.value.trim() || 'Anonim', pesan: pesan.value.trim() });
 });
+
+// Langkah 2: kirim sungguhan hanya setelah "Ya, kirim"
+konfKirim.addEventListener('click', async () => {
+  if (!dataTertunda || sedangKirim) return;
+  const data = dataTertunda;
+  sedangKirim = true;
+  konfKirim.disabled = true;
+  konfUbah.disabled = true;
+  konfKirim.textContent = 'Mengirim...';
+  try {
+    // Kolom jebakan terisi = bot: berpura-pura berhasil tanpa mengirim apa pun
+    if (!form.situs || !form.situs.value) await API.kirimAspirasi(data);
+    try { localStorage.setItem(KUNCI_JEDA, String(Date.now())); } catch (err) { /* abaikan */ }
+    tutupKonfirmasi(false);
+    form.reset();
+    counter.textContent = '0 / 500';
+    counter.classList.remove('near');
+    tampilkanToast('Aspirasi terkirim. Terima kasih!');
+  } catch (err) {
+    tutupKonfirmasi(true);                  // kembali ke form; isi pesan tetap ada
+    tampilkanToast(err.message || 'Aspirasi belum terkirim. Coba lagi.');
+  } finally {
+    sedangKirim = false;
+    konfKirim.disabled = false;
+    konfUbah.disabled = false;
+    konfKirim.textContent = 'Ya, kirim';
+  }
+});
+konfUbah.addEventListener('click', () => tutupKonfirmasi(true));
+konfirmasi.addEventListener('click', e => { if (e.target === konfirmasi && !sedangKirim) tutupKonfirmasi(true); });
+
+// Keyboard: Esc menutup, Tab berputar di dalam pop-up saja
+document.addEventListener('keydown', e => {
+  if (konfirmasi.hidden) return;
+  if (e.key === 'Escape' && !sedangKirim) { tutupKonfirmasi(true); return; }
+  if (e.key === 'Tab') {
+    const bisa = [konfUbah, konfKirim].filter(b => !b.disabled);
+    if (bisa.length === 0) { e.preventDefault(); return; }
+    const awal = bisa[0], akhir = bisa[bisa.length - 1];
+    if (e.shiftKey && document.activeElement === awal) { e.preventDefault(); akhir.focus(); }
+    else if (!e.shiftKey && document.activeElement === akhir) { e.preventDefault(); awal.focus(); }
+    else if (!konfirmasi.contains(document.activeElement)) { e.preventDefault(); awal.focus(); }
+  }
+});
+// Halaman di belakang tidak ikut bergulir selama pop-up terbuka (isi pesan yang panjang tetap bisa digulir)
+['wheel', 'touchmove'].forEach(n => konfirmasi.addEventListener(n, e => {
+  if (!e.target.closest('.konf-ringkas dd')) e.preventDefault();
+}, { passive: false }));
 
 /* =====================================================
    6. ANGKA BERHITUNG: 0, 1, 2, 3 ... sampai angka target

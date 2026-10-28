@@ -23,15 +23,21 @@
   <main class="login-wrap">
     <form class="panel login" id="loginForm" novalidate>
       <img src="Logo-bem.png" alt="Logo BEM INSIS Indonesia" class="login-logo">
-      <h1>Admin Dokumentasi</h1>
+      <h1>Masuk Pengurus</h1>
       <p class="muted">Khusus anggota Media dan Informasi.</p>
+
+      <label for="peran">Masuk sebagai</label>
+      <select id="peran">
+        <option value="dokumentasi">Admin Dokumentasi</option>
+        <option value="aspirasi">Admin Aspirasi</option>
+      </select>
 
       <label for="sandi">Kata sandi</label>
       <input type="password" id="sandi" autocomplete="current-password" required>
       <p class="error" id="loginError" role="alert"></p>
 
       <button type="submit" class="btn btn-gold">Masuk</button>
-      <p class="demo-note">Mode demo: kata sandi <strong>inspire123</strong>. Akan diganti login server oleh Hadi.</p>
+      <p class="demo-note">Mode demo: dokumentasi <strong>inspire123</strong>, aspirasi <strong>aspirasi123</strong>. Akan diganti login server oleh Hadi.</p>
       <a href="index.html" class="kembali">&larr; Kembali ke situs</a>
     </form>
   </main>

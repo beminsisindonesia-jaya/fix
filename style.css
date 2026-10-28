@@ -733,7 +733,7 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
    tampil adalah segi tujuh lengkap (tanpa tulisan INSPIRE).
    ===================================================== */
 .nilai { position: relative; background: var(--hitam); color: var(--krem); }
-.nilai.berjalan { height: 600vh; height: 600svh; }
+.nilai.berjalan { height: 700vh; height: 700svh; }
 
 .nilai-panggung {
   --glow: 0;
@@ -751,18 +751,6 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
   -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
   mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
 }
-/* Denyut cahaya satu kali saat INSPIRE tiba di tengah */
-.nilai-panggung::after {
-  content: ""; position: absolute; left: 50%; top: 50%; width: 22vmin; height: 22vmin;
-  border: 2px solid rgba(224, 185, 106, .55); border-radius: 50%; pointer-events: none;
-  transform: translate(-50%, -50%) scale(0); opacity: 0;
-}
-.nilai.selesai .nilai-panggung::after { animation: denyut 2.6s ease-out 1; }
-@keyframes denyut {
-  from { transform: translate(-50%, -50%) scale(.2); opacity: .9; }
-  to   { transform: translate(-50%, -50%) scale(7); opacity: 0; }
-}
-
 /* ---------- kanvas: segi tujuh + label di sekelilingnya ---------- */
 .nilai-kanvas {
   position: relative; container-type: inline-size; aspect-ratio: 1000 / 760;
@@ -821,6 +809,36 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
   border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); animation: turun 1.6s ease-in-out infinite; }
 @keyframes turun { 0%, 100% { transform: translateY(0) rotate(45deg); opacity: .4; } 50% { transform: translateY(6px) rotate(45deg); opacity: 1; } }
 
+/* ---------- efek setelah INSPIRE tiba di tengah ----------
+   Cahaya, satu cincin garis, dan kemunculan halo digerakkan oleh scroll (script.js), jadi ikut
+   berbalik saat scroll ke atas dan bagian ini baru selesai saat cincin hampir menyentuh sudut layar.
+   Semuanya hanya memakai transform dan opacity, jadi ringan. Di perangkat lemah (mode hemat)
+   hanya cahaya dan satu gelombang yang dipertahankan. */
+.nilai-efek { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.nilai-efek > * { position: absolute; left: 0; top: 0; }
+
+.nilai-cahaya {
+  width: 110vmin; height: 110vmin; margin: -55vmin 0 0 -55vmin; border-radius: 50%; opacity: 0; transform: scale(.3);
+  background: radial-gradient(circle, rgba(236, 190, 90, .5), rgba(236, 190, 90, .14) 38%, transparent 66%);
+}
+
+/* Satu cincin berupa garis tipis yang memancar dari belakang tulisan (dibuat dan digerakkan script.js).
+   Elemen .nilai-gema lama di index.html disembunyikan; boleh dihapus dari HTML kapan saja. */
+.nilai-gema { display: none; }
+.nilai-garis { overflow: visible; opacity: 0; fill: none; }
+.nilai-garis .inti { stroke: #f7cf7c; }
+.nilai-garis .aura { stroke: rgba(236, 190, 90, .22); }
+
+/* Halo: dua cincin bergerigi halus yang berputar berlawanan arah di belakang tulisan (mengingatkan pada roda astrolab) */
+.nilai-halo {
+  width: min(80vmin, 740px); aspect-ratio: 1;
+  margin: calc(min(80vmin, 740px) / -2) 0 0 calc(min(80vmin, 740px) / -2);
+  fill: none; stroke: rgba(224, 185, 106, .75); opacity: 0;
+  animation: putar 80s linear infinite; animation-play-state: paused;
+}
+.nilai-halo.h2 { animation-name: putar-balik; animation-duration: 56s; }
+.nilai.selesai .nilai-halo { animation-play-state: running; }
+
 /* ---------- HP: huruf di tiap sudut + keterangan di bawah segi tujuh ---------- */
 .nilai-keterangan { display: none; position: relative; width: min(90vw, 420px); height: 6rem; margin-top: .6rem; }
 .nilai-ket-blok { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; text-align: center; opacity: 0; }
@@ -845,5 +863,22 @@ h2 { font-size: 1.9rem; margin-bottom: .6rem; }
 }
 .nilai.statis.mode-hp .sr-saja strong { color: var(--emas-terang); }
 
-/* Perangkat lemah: tanpa cahaya berpendar pada garis */
+/* Perangkat lemah: tanpa cahaya berpendar pada garis, dan efek INSPIRE disederhanakan */
 .hemat .nilai-svg { filter: none; }
+.hemat .nilai-halo { display: none; }
+
+
+/* =====================================================
+   POP-UP KONFIRMASI ASPIRASI + KOLOM JEBAKAN
+   ===================================================== */
+.konfirmasi-box { background: #17171b; color: var(--krem); border: 1px solid rgba(196, 154, 82, .35); padding: 1.6rem 1.4rem 1.4rem; width: min(100%, 460px); }
+.konfirmasi-box h3 { font-family: var(--font-judul); color: var(--emas-terang); font-size: 1.3rem; margin-bottom: .4rem; }
+.konf-info { color: #aaa; font-size: .9rem; margin-bottom: 1rem; }
+.konf-ringkas { background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .08); border-radius: 12px; padding: .9rem 1rem; }
+.konf-ringkas dt { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--emas); margin-top: .6rem; }
+.konf-ringkas dt:first-child { margin-top: 0; }
+.konf-ringkas dd { margin: .2rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 30vh; overflow-y: auto; }
+.konf-aksi { display: flex; gap: .7rem; justify-content: flex-end; margin-top: 1.2rem; flex-wrap: wrap; }
+.konf-aksi .btn { margin: 0; }
+.konf-aksi .btn:disabled { opacity: .6; cursor: wait; }
+.jebakan { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

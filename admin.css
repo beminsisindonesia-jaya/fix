@@ -1,159 +1,360 @@
 /* =====================================================
-   admin.css : tampilan khusus halaman admin
+   admin.css : Futuristic Admin Dashboard (BEM INSIS)
    Warna & font diambil dari variabel di style.css
    ===================================================== */
-body.admin { background: var(--hitam); color: var(--krem); min-height: 100vh; }
 
-/* Panel kaca, serasi dengan situs utama */
-.panel {
-  background: rgba(255, 255, 255, .05);
-  border: 1px solid rgba(255, 255, 255, .12);
-  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  border-radius: 20px; padding: 1.5rem;
+/* Sembunyikan latar film miring, ganti dengan Aurora Futuristik */
+.latar-film { display: none !important; }
+
+body.admin { 
+  background-color: #0a0a0c; 
+  color: var(--krem); 
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
 }
-.panel h2 { font-size: 1.3rem; color: var(--emas); margin-bottom: 1rem; }
 
-.muted { color: #aaa; }
+/* Animasi Aurora di Latar Belakang */
+body.admin::before {
+  content: ""; position: fixed; inset: -50%; z-index: -1;
+  background: 
+    radial-gradient(circle at 15% 30%, rgba(196, 154, 82, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, rgba(154, 116, 48, 0.1) 0%, transparent 40%);
+  animation: aurora-admin 15s ease-in-out infinite alternate;
+}
+@keyframes aurora-admin {
+  0% { transform: rotate(0deg) scale(1); }
+  100% { transform: rotate(5deg) scale(1.1); }
+}
+
+/* Grid Halus di Latar */
+body.admin::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 10%, transparent 80%);
+}
+
+/* Panel Kaca (Glassmorphism) */
+.panel {
+  background: rgba(20, 20, 24, 0.6);
+  -webkit-backdrop-filter: blur(24px) saturate(180%); 
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px; 
+  padding: 2rem;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    0 15px 35px rgba(0, 0, 0, 0.3);
+  transition: border-color .3s;
+  position: relative;
+  overflow: hidden;
+}
+.panel:hover {
+  border-color: rgba(196, 154, 82, 0.3);
+}
+.panel h2 { 
+  font-size: 1.4rem; 
+  color: var(--emas-terang); 
+  margin-bottom: 1.2rem; 
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.panel h2::before {
+  content: ""; display: inline-block; width: 4px; height: 20px; 
+  background: var(--emas); border-radius: 4px; box-shadow: 0 0 10px var(--emas);
+}
+
+.muted { color: #888; }
 .kecil { font-size: .85rem; }
-.error { color: #ff9b88; min-height: 1.4rem; font-size: .9rem; }
+.error { color: #ff6b5b; min-height: 1.4rem; font-size: .9rem; margin-top: .5rem; }
 
-/* Isian form */
-.admin label { display: block; font-weight: 500; margin: .8rem 0 .3rem; }
+/* Isian form Futuristik */
+.admin label { display: block; font-weight: 500; margin: 1rem 0 .4rem; color: #ccc; font-size: .9rem; }
 .admin input, .admin select {
   width: 100%; font: inherit; color: var(--krem);
-  background: rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .12);
-  border-radius: 10px; padding: .75rem 1rem;
-  transition: border-color .2s;
+  background: rgba(0, 0, 0, 0.4); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px; padding: .8rem 1rem;
+  transition: all .3s ease;
 }
-.admin input:focus, .admin select:focus { outline: none; border-color: var(--emas); }
-.admin input.invalid { border-color: #e5654f; }
-.admin select option { color: #1a1a1a; }
-.admin input[type="file"] { padding: .6rem; }
+.admin input:focus, .admin select:focus { 
+  outline: none; 
+  border-color: var(--emas); 
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 15px rgba(196, 154, 82, 0.15);
+}
+.admin input.invalid { border-color: #ff6b5b; box-shadow: 0 0 10px rgba(255, 107, 91, 0.2); }
+.admin select option { color: #1a1a1a; background: #fff; }
+.admin input[type="file"] { padding: .6rem; cursor: pointer; }
+.admin input[type="file"]::file-selector-button {
+  background: rgba(196, 154, 82, 0.2);
+  color: var(--emas-terang);
+  border: 1px solid rgba(196, 154, 82, 0.4);
+  padding: .4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .2s;
+  margin-right: 1rem;
+}
+.admin input[type="file"]::file-selector-button:hover {
+  background: var(--emas);
+  color: var(--hitam);
+}
 .admin input[type="date"] { color-scheme: dark; }
 
-/* ---------- Login ---------- */
-.login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1.25rem; position: relative; overflow: hidden; }
-.login-wrap::before {
-  content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%;
-  top: -100px; right: -100px; pointer-events: none;
-  background: radial-gradient(circle, rgba(196, 154, 82, .45), transparent 65%);
+/* ---------- Login Page ---------- */
+.login-wrap { 
+  min-height: 100vh; display: grid; place-items: center; 
+  padding: 1.25rem; position: relative; 
 }
-.login { width: min(100%, 400px); position: relative; text-align: center; padding: 2rem 1.5rem; }
-.login h1 { font-size: 1.5rem; margin: .8rem 0 .2rem; }
+.login { 
+  width: min(100%, 420px); position: relative; text-align: center; 
+  padding: 2.5rem 2rem; 
+  border-radius: 24px;
+}
+.login h1 { font-size: 1.8rem; margin: 1rem 0 .3rem; color: var(--krem); font-weight: 800; letter-spacing: -0.02em; }
 .login label { text-align: left; }
-.login .btn { margin-top: .6rem; width: 100%; }
-.login-logo { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto; }
-.demo-note { margin-top: 1rem; font-size: .8rem; color: #888; }
+.login .btn { margin-top: 1rem; width: 100%; padding: .9rem; font-size: 1rem; }
+.login-logo { 
+  width: 110px; 
+  height: auto; 
+  margin: 0 auto 1rem; 
+  /* Hapus border-radius, border, dan box-shadow */
+  filter: drop-shadow(0 0 20px rgba(196, 154, 82, 0.2)); /* Opsional: sedikit pendaran emas halus di sekitar logo */
+}
+.demo-note { margin-top: 1.5rem; font-size: .8rem; color: #777; line-height: 1.5; }
 .demo-note strong { color: var(--emas-terang); }
 
-/* ---------- Bar atas ---------- */
+/* ---------- Bar Atas ---------- */
 .admin-bar {
-  position: sticky; top: 0; z-index: 10;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: .7rem 1.25rem;
-  background: rgba(18, 18, 18, .7);
-  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  position: sticky; 
+  top: 0; 
+  z-index: 100; /* Naikkan z-index agar di atas segalanya */
+  display: flex !important; 
+  flex-direction: row !important; /* Paksa menyamping, jangan turun ke bawah */
+  justify-content: space-between !important; 
+  align-items: center !important;
+  padding: .8rem 1.5rem !important;
+  background: rgba(10, 10, 12, 0.85) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important; 
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  width: 100% !important; /* Pastikan selebar layar */
+  box-sizing: border-box !important;
 }
-.admin-bar .brand img { width: 36px; height: 36px; }
-.bar-actions { display: flex; align-items: center; gap: 1rem; }
-.link-situs:hover { color: var(--emas-terang); }
-.btn-small { padding: .4rem 1rem; font-size: .85rem; }
 
-/* ---------- Isi ---------- */
-.admin-main { max-width: 760px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; display: grid; gap: 1.25rem; }
+.admin-bar .brand { 
+  display: flex !important; 
+  align-items: center !important; 
+  gap: 0.8rem !important; 
+  text-decoration: none !important;
+}
+
+.admin-bar .brand img { 
+  width: 38px !important; 
+  height: 38px !important; 
+  object-fit: contain !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.admin-bar .brand span { 
+  font-family: var(--font-judul) !important; 
+  font-weight: 600 !important; 
+  color: var(--krem) !important;
+  font-size: 1.1rem !important;
+  white-space: nowrap !important;
+}
+
+.bar-actions { 
+  display: flex !important; 
+  align-items: center !important; 
+  gap: 1.2rem !important; 
+  flex-direction: row !important; /* Pastikan tombol berjejer ke samping */
+  width: auto !important;
+}
+
+.link-situs { 
+  color: #aaa !important; 
+  font-size: .9rem !important; 
+  text-decoration: none !important;
+  transition: color .2s !important; 
+}
+.link-situs:hover { 
+  color: var(--emas-terang) !important; 
+}
+
+/* Kunci Tombol Keluar agar tidak jadi kotak raksasa */
+.btn-small { 
+  padding: .5rem 1.2rem !important; 
+  font-size: .85rem !important; 
+  border-radius: 999px !important; 
+  width: auto !important; 
+  height: auto !important;
+  margin: 0 !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+/* ---------- Isi Konten ---------- */
+.admin-main { 
+  max-width: 800px; margin: 0 auto; 
+  padding: 2rem 1.25rem 5rem; 
+  display: grid; gap: 1.5rem; 
+}
 .demo-banner {
-  background: rgba(196, 154, 82, .12); border: 1px solid rgba(196, 154, 82, .4);
-  color: var(--emas-terang); border-radius: 12px; padding: .7rem 1rem; font-size: .88rem;
+  background: linear-gradient(90deg, rgba(196, 154, 82, 0.15), transparent); 
+  border-left: 4px solid var(--emas);
+  color: var(--emas-terang); border-radius: 8px; padding: .8rem 1.2rem; font-size: .9rem;
+  display: flex; align-items: center; gap: .5rem;
 }
 .baris { display: grid; gap: 0 1rem; grid-template-columns: 1fr; }
-.admin .btn { margin-top: .4rem; }
-.admin .btn:disabled { opacity: .6; cursor: wait; }
+.admin .btn { margin-top: .8rem; border-radius: 12px; }
+.admin .btn:disabled { opacity: .6; cursor: not-allowed; filter: grayscale(1); }
 
-.preview { margin: .6rem 0 .4rem; border-radius: 12px; overflow: hidden; max-width: 320px; border: 1px solid rgba(255, 255, 255, .15); }
+.preview { 
+  margin: 1rem 0; border-radius: 12px; overflow: hidden; 
+  max-width: 320px; border: 1px solid rgba(255, 255, 255, 0.15); 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
 .preview img { width: 100%; display: block; }
 
 /* ---------- Daftar tersimpan ---------- */
-.jumlah { font-size: .85rem; color: #aaa; font-weight: 400; margin-left: .4rem; }
-.daftar { list-style: none; display: grid; gap: .7rem; }
+.jumlah { 
+  font-size: .85rem; color: var(--emas); font-weight: 600; 
+  margin-left: .4rem; background: rgba(196,154,82,0.15); 
+  padding: .1rem .6rem; border-radius: 999px; 
+}
+.daftar { list-style: none; display: grid; gap: 1rem; }
 .item {
-  display: grid; grid-template-columns: 72px 1fr auto; gap: .9rem; align-items: center;
-  background: rgba(0, 0, 0, .3); border-radius: 12px; padding: .6rem;
+  display: grid; grid-template-columns: 80px 1fr auto; gap: 1rem; align-items: center;
+  background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px; padding: .8rem;
+  transition: all .3s;
+}
+.item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(196, 154, 82, 0.3);
+  transform: translateY(-2px);
 }
 .item-foto {
-  width: 72px; height: 72px; border-radius: 8px; overflow: hidden;
-  background: linear-gradient(135deg, #000, #3a2f1a); display: grid; place-items: center;
-  color: var(--emas); font-size: .7rem; text-align: center;
+  width: 80px; height: 80px; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(135deg, #111, #222); display: grid; place-items: center;
+  color: var(--emas); font-size: .75rem; text-align: center; border: 1px solid rgba(255,255,255,0.1);
 }
 .item-foto img { width: 100%; height: 100%; object-fit: cover; }
 .item-info { min-width: 0; }
-.item-info strong { display: block; font-family: var(--font-judul); font-weight: 500; overflow-wrap: anywhere; }
-.item-info span { font-size: .82rem; color: #aaa; }
+.item-info strong { display: block; font-family: var(--font-judul); font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; color: #fff; }
+.item-info span { font-size: .85rem; color: #888; margin-top: .2rem; display: block; }
 .hapus {
-  background: none; border: 1px solid #e5654f; color: #ff9b88;
-  border-radius: 999px; padding: .35rem .9rem; font-size: .85rem;
-  transition: background .2s, color .2s;
+  background: rgba(255, 107, 91, 0.1); border: 1px solid rgba(255, 107, 91, 0.3); color: #ff6b5b;
+  border-radius: 10px; padding: .5rem 1rem; font-size: .85rem; font-weight: 600;
+  transition: all .2s; cursor: pointer;
 }
-.hapus:hover { background: #e5654f; color: #fff; }
-.kosong { color: #aaa; text-align: center; padding: 1rem; }
+.hapus:hover { background: #ff6b5b; color: #fff; box-shadow: 0 0 15px rgba(255, 107, 91, 0.4); }
+.kosong { color: #777; text-align: center; padding: 2rem 1rem; font-style: italic; }
 
 @media (min-width: 600px) {
   .baris { grid-template-columns: 1fr 1fr; }
 }
 
 /* Tautan kembali di halaman login */
-.kembali { display: inline-block; margin-top: 1rem; font-size: .85rem; color: #aaa; }
+.kembali { display: inline-block; margin-top: 1.5rem; font-size: .9rem; color: #888; transition: color .2s; }
 .kembali:hover { color: var(--emas-terang); }
 
 /* Sub-judul di dalam panel */
-.sub { font-size: 1rem; margin: 1.6rem 0 .8rem; }
-.panel > .muted { margin-bottom: .4rem; }
+.sub { font-size: 1.1rem; margin: 2rem 0 1rem; color: var(--krem); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: .5rem; }
+.panel > .muted { margin-bottom: 1rem; }
 
 /* ---------- Alat potong foto (bingkai seragam 4:3) ---------- */
-.krop { margin: .4rem 0 .6rem; }
+.krop { margin: 1rem 0; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; }
 .krop-bingkai {
   position: relative; width: min(100%, 360px); aspect-ratio: 4 / 3; overflow: hidden;
-  border-radius: 12px; background: #000; border: 1px solid rgba(255, 255, 255, .2);
-  touch-action: none; cursor: grab;
+  border-radius: 10px; background: #000; border: 1px solid rgba(255, 255, 255, 0.2);
+  touch-action: none; cursor: grab; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 .krop-bingkai:active { cursor: grabbing; }
 .krop-bingkai img {
   position: absolute; left: 0; top: 0; max-width: none;
   pointer-events: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none;
 }
-.admin input[type="range"] { padding: 0; background: none; border: 0; accent-color: var(--emas); width: min(100%, 360px); }
+.admin input[type="range"] { 
+  padding: 0; background: none; border: 0; accent-color: var(--emas); 
+  width: min(100%, 360px); margin-top: .5rem; 
+}
+
+/* Tombol Simpan Emas */
+.btn-gold {
+  background: linear-gradient(135deg, var(--emas), var(--emas-tua)) !important;
+  color: var(--hitam) !important; border: none !important; 
+  padding: .9rem 1.5rem !important; font-weight: 700 !important;
+  transition: all .3s !important;
+  box-shadow: 0 4px 15px rgba(196, 154, 82, 0.3) !important;
+}
+.btn-gold:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(196, 154, 82, 0.5) !important;
+}
+
+/* Tombol Outline */
+.btn-line {
+  background: transparent !important; border: 1px solid rgba(196, 154, 82, 0.5) !important;
+  color: var(--emas-terang) !important; transition: all .3s !important;
+}
+.btn-line:hover {
+  background: rgba(196, 154, 82, 0.1) !important;
+  border-color: var(--emas) !important;
+}
 
 /* =====================================================
-   LATAR ROLL FILM MIRING (45 derajat) untuk halaman admin & login
-   Dibuat oleh latar-film.js. Hanya dekorasi: tidak bisa diklik, dibuat redup,
-   dan diberi lapisan gelap agar isian form tetap mudah dibaca.
+   EFEK SOROTAN MOUSE (Hanya Desktop)
    ===================================================== */
-.latar-film { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.latar-film::after {
-  content: ""; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% 45%, rgba(18, 18, 18, .78) 0%, rgba(18, 18, 18, .4) 75%);
-}
-.film-miring {
-  position: absolute; left: 50%; top: 50%; width: var(--S, 2000px); height: var(--S, 2000px);
-  transform: translate(-50%, -50%) rotate(-45deg);
-  display: flex; flex-direction: column; justify-content: center; gap: 26px; opacity: .7;
-}
-.film-jalur { position: relative; flex: none; height: 156px; }
-.film-pita {
-  position: absolute; left: 0; top: 0; height: 100%; width: calc(100% + 840px);
-  background-color: #241f16;
-  background-image: var(--lubang), var(--lubang), var(--bingkai);
-  background-repeat: repeat-x;
-  background-position: 0 0, 0 100%, 0 50%;
-  background-size: 40px 18px, 40px 18px, 210px 120px;
-  animation: film-kiri var(--durasi, 28s) linear infinite; will-change: transform;
-}
-.film-jalur:nth-child(even) .film-pita { animation-name: film-kanan; }
-/* 840 px = kelipatan terkecil dari lebar bingkai (210 px) dan jarak lubang (40 px): putaran tanpa sambungan */
-@keyframes film-kiri  { to { transform: translateX(-840px); } }
-@keyframes film-kanan { from { transform: translateX(-840px); } to { transform: none; } }
+@media (hover: hover) and (pointer: fine) {
+  body.admin {
+    --mx: 50%;
+    --my: 50%;
+  }
 
-/* Isi halaman berada di atas latar. Panel dibuat hampir solid (tanpa blur) agar ringan dan terbaca. */
-.admin-main, .login-wrap { position: relative; z-index: 1; }
-.panel { background: rgba(24, 24, 26, .9); -webkit-backdrop-filter: none; backdrop-filter: none; }
-.admin-bar { background: rgba(18, 18, 18, .92); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* Cahaya emas mengikuti kursor */
+  body.admin::after {
+    content: ""; 
+    position: fixed; 
+    inset: 0; 
+    z-index: -1; 
+    pointer-events: none;
+    
+    /* Cahaya mengikuti kursor */
+    background: radial-gradient(
+      circle 600px at var(--mx) var(--my), 
+      rgba(224, 185, 106, 0.12), /* Cahaya emas */
+      transparent 60%
+    );
+    
+    transition: background 0.1s ease-out;
+  }
+}
+
+/* =====================================================
+   HALAMAN ADMIN ASPIRASI (tabel seperti spreadsheet)
+   ===================================================== */
+.admin-main.lebar { max-width: 1100px; }
+.alat { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; margin-bottom: 1rem; }
+.alat input[type="search"] { flex: 1 1 220px; width: auto; }
+.alat .btn { margin: 0; padding: .7rem 1.1rem !important; white-space: nowrap; }
+.tabel-bungkus { overflow-x: auto; border: 1px solid rgba(255, 255, 255, .08); border-radius: 14px; background: rgba(0, 0, 0, .25); }
+.tabel { width: 100%; border-collapse: collapse; min-width: 560px; font-size: .92rem; }
+.tabel th, .tabel td { text-align: left; padding: .75rem 1rem; vertical-align: top; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+.tabel thead th { position: sticky; top: 0; background: #17171b; color: var(--emas-terang); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.tabel tbody tr:hover { background: rgba(196, 154, 82, .07); }
+.tabel td.no { color: #777; width: 3rem; }
+.tabel td.waktu { white-space: nowrap; color: #bbb; }
+.tabel td.nama { font-weight: 600; color: #fff; min-width: 8rem; overflow-wrap: anywhere; }
+.tabel td.nama.anonim { font-weight: 400; color: #888; font-style: italic; }
+.tabel td.isi { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 16rem; }

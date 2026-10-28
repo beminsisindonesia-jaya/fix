@@ -12,7 +12,16 @@
 const KUNCI_DATA = 'inspire_dokumentasi';
 const KUNCI_LOGIN = 'inspire_admin';
 const KUNCI_PILIHAN = 'inspire_foto_pilihan';
-const SANDI_DEMO = 'inspire123'; // HANYA DEMO. Login asli harus di server.
+const KUNCI_ASPIRASI = 'inspire_aspirasi';
+const KUNCI_SANDI_ASPIRASI = 'inspire_sandi_aspirasi';
+const SANDI_DEMO = 'inspire123';           // admin DOKUMENTASI. HANYA DEMO. Login asli harus di server.
+const SANDI_DEMO_ASPIRASI = 'aspirasi123'; // admin ASPIRASI.   HANYA DEMO.
+
+// Alamat Web App Google Apps Script (lihat apps-script.gs). Selama KOSONG, aspirasi
+// disimpan di browser ini saja (mode demo). Isi dengan alamat yang berakhiran /exec
+// agar aspirasi masuk ke Google Spreadsheet sungguhan.
+const URL_ASPIRASI = '';
+const MODE_DEMO_ASPIRASI = !URL_ASPIRASI;
 
 // Pengelompokan kegiatan di halaman "Seluruh dokumentasi".
 // KATEGORI = jenis kegiatan (mudah dipahami pengunjung, stabil dari kabinet ke kabinet).
@@ -42,18 +51,11 @@ const ARSIP_LENGKAP = 'https://drive.google.com/drive/folders/GANTI_DENGAN_ID_FO
 
 // Data contoh yang tampil bila belum ada dokumentasi tersimpan
 const DATA_CONTOH = [
-  { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: '' },
-  { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: '' },
-  { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: '' },
-  { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: '' },
-  { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: '' },
-  { id: 'c06', judul: 'Pelatihan Kepemimpinan', tanggal: '2026-09-25', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.778, foto: '' },
-  { id: 'c07', judul: 'Santunan Anak Yatim', tanggal: '2026-10-02', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.333, foto: '', album: ARSIP_LENGKAP },
-  { id: 'c08', judul: 'Lomba Kaligrafi', tanggal: '2026-10-05', kategori: 'seni', divisi: 'Olahraga dan Seni', rasio: 0.75, foto: '' },
-  { id: 'c09', judul: 'Peringatan Maulid Nabi', tanggal: '2026-10-10', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.5, foto: '', album: ARSIP_LENGKAP },
-  { id: 'c10', judul: 'Diskusi Publik Pendidikan', tanggal: '2026-10-15', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.333, foto: '' },
-  { id: 'c11', judul: 'Jalan Sehat Kampus', tanggal: '2026-10-18', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.778, foto: '' },
-  { id: 'c12', judul: 'Pelatihan Jurnalistik', tanggal: '2026-10-20', kategori: 'akademik', divisi: 'Media dan Informasi', rasio: 1.5, foto: '' }
+  { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800' },
+  { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=800' },
+  { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&q=80&w=800' },
+  { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1593113589914-07599018dd2a?auto=format&fit=crop&q=80&w=800' },
+  { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&q=80&w=800' }
 ];
 
 // Foto pilihan untuk dua roll di beranda (roll 1 = ikhwan, roll 2 = akhwat).
@@ -139,18 +141,76 @@ const API = {
     localStorage.setItem(KUNCI_PILIHAN, JSON.stringify(daftar));
   },
 
+  // ----- Aspirasi -----
+  // Dikirim pengunjung dari beranda. Bentuk: { nama, pesan }.
+  // Mode Apps Script: tersimpan sebagai baris baru di Google Spreadsheet.
+  // HADI (bila pakai server sendiri): POST /api/aspirasi  (publik, beri batas laju agar tidak di-spam)
+  async kirimAspirasi({ nama, pesan }) {
+    if (URL_ASPIRASI) {
+      const res = await panggilServerAspirasi({ aksi: 'kirim', nama, pesan });
+      if (!res.ok) throw new Error(res.galat || 'Aspirasi belum terkirim. Coba lagi.');
+      return;
+    }
+    const daftar = JSON.parse(localStorage.getItem(KUNCI_ASPIRASI) || '[]');
+    daftar.push({ id: 'a' + Date.now(), waktu: new Date().toISOString(), nama, pesan });
+    localStorage.setItem(KUNCI_ASPIRASI, JSON.stringify(daftar));
+  },
+
+  // Hanya untuk admin aspirasi. Mengembalikan [{ waktu (ISO), nama, pesan }], terbaru di atas.
+  // HADI (bila pakai server sendiri): GET /api/aspirasi, WAJIB dicek di server (peran "aspirasi").
+  async ambilAspirasi() {
+    let daftar;
+    if (URL_ASPIRASI) {
+      const res = await panggilServerAspirasi({ aksi: 'daftar', sandi: sessionStorage.getItem(KUNCI_SANDI_ASPIRASI) || '' });
+      if (!res.ok) throw new Error(res.galat || 'Gagal memuat aspirasi.');
+      daftar = res.data;
+    } else {
+      daftar = JSON.parse(localStorage.getItem(KUNCI_ASPIRASI) || '[]');
+    }
+    return daftar.sort((a, b) => String(b.waktu).localeCompare(String(a.waktu)));
+  },
+
   // ----- Login admin (DEMO) -----
-  // HADI: ganti dengan login server (sesi/cookie atau token). Pengecekan
-  // sandi di JavaScript seperti ini TIDAK AMAN karena siapa pun bisa
-  // membacanya lewat "View Source".
-  async masuk(sandi) {
-    if (sandi !== SANDI_DEMO) return false;
-    sessionStorage.setItem(KUNCI_LOGIN, '1');
+  // Ada dua peran: 'dokumentasi' dan 'aspirasi'. Masing-masing punya kata sandi sendiri.
+  // HADI: ganti dengan login server (sesi/cookie atau token) yang mengembalikan peran.
+  // Pengecekan sandi di JavaScript TIDAK AMAN karena bisa dibaca lewat "View Source".
+  // Khusus peran 'aspirasi' dengan Apps Script, sandi dicek di server Google (bukan di sini).
+  async masuk(peran, sandi) {
+    if (peran === 'aspirasi' && URL_ASPIRASI) {
+      let res;
+      try { res = await panggilServerAspirasi({ aksi: 'cek', sandi }); } catch (err) { return false; }
+      if (!res.ok) return false;
+    } else {
+      const benar = peran === 'aspirasi' ? SANDI_DEMO_ASPIRASI : peran === 'dokumentasi' ? SANDI_DEMO : null;
+      if (benar === null || sandi !== benar) return false;
+    }
+    sessionStorage.setItem(KUNCI_LOGIN, peran);
+    if (peran === 'aspirasi') sessionStorage.setItem(KUNCI_SANDI_ASPIRASI, sandi);
     return true;
   },
-  keluar() { sessionStorage.removeItem(KUNCI_LOGIN); },
-  sudahMasuk() { return sessionStorage.getItem(KUNCI_LOGIN) === '1'; }
+  keluar() {
+    sessionStorage.removeItem(KUNCI_LOGIN);
+    sessionStorage.removeItem(KUNCI_SANDI_ASPIRASI);
+  },
+  peran() { return sessionStorage.getItem(KUNCI_LOGIN); },
+  // sudahMasuk('aspirasi') = sudah masuk sebagai peran itu; sudahMasuk() = masuk sebagai peran apa pun
+  sudahMasuk(peran) {
+    const p = sessionStorage.getItem(KUNCI_LOGIN);
+    return peran ? p === peran : Boolean(p);
+  }
 };
+
+// Panggilan ke Google Apps Script. Memakai text/plain agar tidak memicu preflight CORS.
+async function panggilServerAspirasi(muatan) {
+  let r;
+  try {
+    r = await fetch(URL_ASPIRASI, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(muatan) });
+  } catch (err) {
+    throw new Error('Tidak bisa terhubung ke server. Periksa koneksi internetmu.');
+  }
+  if (!r.ok) throw new Error('Server sedang bermasalah. Coba lagi nanti.');
+  return r.json();
+}
 
 // Mengubah '2026-08-12' menjadi '12 Agustus 2026'
 function formatTanggal(iso) {

@@ -17,24 +17,6 @@ if (parameter === '1' || (perangkatLemah && parameter !== '0')) {
 }
 
 /* =====================================================
-   1. NAVBAR: berubah menjadi pil mengambang saat di-scroll
-   (halaman ini hanya punya satu tombol, "Kembali ke beranda")
-   ===================================================== */
-const navbar = document.getElementById('navbar');
-
-let navMengambang = false;
-function aturNavbar() {
-  const y = window.scrollY;
-  const nyala = navMengambang ? y > 8 : y > 20;
-  if (nyala !== navMengambang) {
-    navMengambang = nyala;
-    navbar.classList.toggle('scrolled', nyala);
-  }
-}
-window.addEventListener('scroll', aturNavbar, { passive: true });
-aturNavbar();
-
-/* =====================================================
    2. KEADAAN HALAMAN
    ===================================================== */
 const HALAMAN = 24;                 // jumlah foto yang tampil per "halaman"
@@ -112,8 +94,6 @@ elDivisi.addEventListener('change', () => {
 
 /* =====================================================
    4. PENGGESER TANGGAL
-   Tiap posisi = satu tanggal yang punya dokumentasi (terlama di kiri).
-   Dibiarkan "tidak aktif" sampai pengunjung menggesernya.
    ===================================================== */
 function posisiSlider(idx) {
   const n = tglUrut.length;
@@ -123,7 +103,7 @@ function posisiSlider(idx) {
 
 function aturSlider() {
   const n = tglUrut.length;
-  elWaktu.hidden = n < 2;               // satu tanggal saja: penggeser tidak berguna
+  elWaktu.hidden = n < 2;
   if (n < 2) return;
 
   elRentang.max = n - 1;
@@ -151,7 +131,7 @@ elRentang.addEventListener('input', () => {
   posisiSlider(idx);
   elWaktu.classList.add('aktif');
   elReset.hidden = false;
-  renderDaftar();                       // hanya daftar yang diperbarui, agar geseran tetap ringan
+  renderDaftar();
 });
 elReset.addEventListener('click', () => {
   tanggalAktif = null;
@@ -188,7 +168,7 @@ function buatKartu(item, indeks, urutan) {
   const isi = document.createElement('div');
   isi.className = 'dok-kartu-isi';
   const judul = document.createElement('h3');
-  judul.textContent = item.judul;                   // textContent: aman dari kode berbahaya
+  judul.textContent = item.judul;
   const meta = document.createElement('p');
   meta.textContent = tanggalPendek(item.tanggal) + (item.divisi ? ' · ' + item.divisi : '');
   isi.append(judul, meta);
@@ -230,7 +210,7 @@ function renderDaftar() {
   let grid = null;
   let kunciSekarang = null;
   tampil.forEach((item, i) => {
-    const kunci = tanggalAktif ? 'tanggal' : item.tanggal.slice(0, 7);   // satu judul per bulan
+    const kunci = tanggalAktif ? 'tanggal' : item.tanggal.slice(0, 7);
     if (kunci !== kunciSekarang) {
       kunciSekarang = kunci;
       const judulBulan = document.createElement('h2');
@@ -257,20 +237,36 @@ function renderSemua() {
   renderDaftar();
 }
 
+/* =====================================================
+   6. MUAT DATA (DENGAN 5 FOTO CONTOH)
+   ===================================================== */
 async function muat() {
   try {
-    semua = await API.ambilSemua();            // sudah urut dari yang terbaru
+    // --- DATA CONTOH UNTUK TES GAMBAR ---
+    // Jika nanti sudah pakai backend, ganti baris ini dengan: semua = await API.ambilSemua();
+    semua = [
+      { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800' },
+      { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=800' },
+      { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&q=80&w=800' },
+      { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&q=80&w=800' },
+      { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&q=80&w=800' }
+    ];
+    
+    // Urutkan dari yang terbaru
+    semua.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+
     bangunChips();
     bangunDivisi();
     renderSemua();
   } catch (err) {
+    console.error(err);
     elRingkas.textContent = 'Dokumentasi belum bisa dimuat. Coba lagi nanti.';
   }
 }
 muat();
 
 /* =====================================================
-   6. POP-UP FOTO: maju/mundur lewat tombol, panah keyboard, atau geser jari
+   7. POP-UP FOTO: maju/mundur lewat tombol, panah keyboard, atau geser jari
    ===================================================== */
 const lb = document.getElementById('dokLb');
 const lbFoto = document.getElementById('dokLbFoto');
@@ -290,7 +286,7 @@ function isiLb() {
   document.getElementById('dokLbMeta').textContent = bagian.join(' · ');
 
   lbFoto.innerHTML = '';
-  document.getElementById('dokKerangka').style.setProperty('--rasio', item.rasio || 4 / 3); // bingkai mengikuti ukuran foto asli
+  document.getElementById('dokKerangka').style.setProperty('--rasio', item.rasio || 4 / 3);
   if (item.foto) {
     const img = document.createElement('img');
     img.src = item.foto;
@@ -307,7 +303,6 @@ function isiLb() {
   lbPrev.disabled = lbIndeks <= 0;
   lbNext.disabled = lbIndeks >= daftarTersaring.length - 1;
 
-  // Muat foto tetangga lebih dulu agar perpindahan terasa instan
   [lbIndeks - 1, lbIndeks + 1].forEach(i => {
     if (daftarTersaring[i] && daftarTersaring[i].foto) new Image().src = daftarTersaring[i].foto;
   });
@@ -344,7 +339,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') geser(1);
 });
 
-// Geser jari ke kiri/kanan untuk pindah foto
 let awalSentuh = null;
 lbFoto.addEventListener('pointerdown', e => { awalSentuh = e.clientX; });
 lbFoto.addEventListener('pointerup', e => {
@@ -354,3 +348,41 @@ lbFoto.addEventListener('pointerup', e => {
   if (Math.abs(selisih) > 50) geser(selisih < 0 ? 1 : -1);
 });
 lbFoto.addEventListener('pointercancel', () => { awalSentuh = null; });
+
+/* =====================================================
+   8. PENCARIAN & SIDEBAR MOBILE (Apple Theme)
+   ===================================================== */
+const inputCari = document.getElementById('cariJudul');
+const sidebar = document.getElementById('sidebar');
+const btnBukaSidebar = document.getElementById('bukaSidebar');
+const btnTutupSidebar = document.getElementById('sidebarTutup');
+
+// Pencarian judul
+if (inputCari) {
+  inputCari.addEventListener('input', () => {
+    const kataKunci = inputCari.value.toLowerCase();
+    const kartuSemua = document.querySelectorAll('.dok-kartu');
+    
+    kartuSemua.forEach(kartu => {
+      const judul = kartu.querySelector('h3').textContent.toLowerCase();
+      if (judul.includes(kataKunci)) {
+        kartu.style.display = 'flex';
+      } else {
+        kartu.style.display = 'none';
+      }
+    });
+  });
+}
+
+// Buka/Tutup Sidebar di HP
+if (btnBukaSidebar && btnTutupSidebar) {
+  btnBukaSidebar.addEventListener('click', () => sidebar.classList.add('terbuka'));
+  btnTutupSidebar.addEventListener('click', () => sidebar.classList.remove('terbuka'));
+  
+  // Tutup sidebar otomatis saat kategori dipilih
+  if (elChips) {
+    elChips.addEventListener('click', () => {
+      if (window.innerWidth <= 900) sidebar.classList.remove('terbuka');
+    });
+  }
+}

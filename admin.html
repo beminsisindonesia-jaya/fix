@@ -22,7 +22,7 @@
        CATATAN (Hadi): ini hanya pengaman tampilan. Pengaman sebenarnya harus ada di server. -->
   <script src="api.js"></script>
   <script>
-    if (!API.sudahMasuk()) {
+    if (!API.sudahMasuk('dokumentasi')) {
       document.documentElement.style.display = 'none';
       location.replace('login.html');
     }
@@ -135,6 +135,18 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="admin.js"></script>
+  
+  <!-- EFEK SOROTAN MOUSE UNTUK DASHBOARD -->
+  <script>
+    const isDesktop = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (isDesktop) {
+      document.body.addEventListener('pointermove', (e) => {
+        document.body.style.setProperty('--mx', `${(e.clientX / window.innerWidth) * 100}%`);
+        document.body.style.setProperty('--my', `${(e.clientY / window.innerHeight) * 100}%`);
+      });
+    }
+  </script>
+  
   <script src="latar-film.js"></script>
 </body>
 </html>
