@@ -20,7 +20,7 @@
 
   <!-- Penjaga halaman: belum masuk = dikembalikan ke login.html sebelum halaman sempat tampil.
        CATATAN (Hadi): ini hanya pengaman tampilan. Pengaman sebenarnya harus ada di server. -->
-  <script src="api.js"></script>
+  <script src="api.js?v=20261031"></script>
   <script>
     if (!API.sudahMasuk('dokumentasi')) {
       document.documentElement.style.display = 'none';
@@ -31,15 +31,13 @@
 <body class="admin">
 
   <header class="admin-bar">
-    <a href="index.html" class="brand"><img src="Logo-bem.png" alt=""><span>Admin BEM INSIS</span></a>
+    <a href="index.html" class="brand"><img src="Logo-bem.png" alt=""><span>Admin Dokumentasi</span></a>
     <div class="bar-actions">
-      <a href="index.html" class="link-situs">Lihat situs</a>
       <button class="btn btn-line btn-small" id="keluarBtn">Keluar</button>
     </div>
   </header>
 
   <main class="admin-main">
-    <p class="demo-banner">Mode demo: data tersimpan di browser ini saja dan belum terhubung ke server.</p>
 
     <!-- ========== FOTO PILIHAN UNTUK DUA ROLL DI BERANDA ========== -->
     <section class="panel">
@@ -147,6 +145,5 @@
     }
   </script>
   
-  <script src="latar-film.js"></script>
 </body>
 </html>

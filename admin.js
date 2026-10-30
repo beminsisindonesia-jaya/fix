@@ -14,10 +14,13 @@ function tampilkanToast(teks) {
 /* =====================================================
    1. KELUAR: hapus sesi lalu kembali ke halaman login
    ===================================================== */
-document.getElementById('keluarBtn').addEventListener('click', () => {
-  API.keluar();
+document.getElementById('keluarBtn').addEventListener('click', async () => {
+  await API.keluar();
   location.href = 'login.html';
 });
+
+API.cekSesi('dokumentasi');                       // sesi di server sudah berakhir? kembali ke login
+if (MODE_DEMO) document.getElementById('demoBanner').hidden = false;
 
 /* =====================================================
    2. ALAT BANTU FOTO
@@ -71,6 +74,7 @@ function buatBaris({ foto, judul, meta, onHapus }) {
     const img = document.createElement('img');
     img.src = foto;
     img.alt = '';
+    img.loading = 'lazy';
     kotakFoto.appendChild(img);
   } else {
     kotakFoto.textContent = 'Contoh';
@@ -228,7 +232,8 @@ pilihanForm.addEventListener('submit', async e => {
 });
 
 async function muatPilihan() {
-  const data = await API.ambilFotoPilihan();
+  let data;
+  try { data = await API.ambilFotoPilihan(); } catch (err) { tampilkanToast(err.message); return; }
   const daftarEl = document.getElementById('daftarPilihan');
   document.getElementById('jumlahPilihan').textContent = `(${data.length})`;
   daftarEl.innerHTML = '';
@@ -248,7 +253,7 @@ async function muatPilihan() {
       meta: item.kelompok === 'akhwat' ? 'Roll 2 - Akhwat' : 'Roll 1 - Ikhwan',
       onHapus: async () => {
         if (!confirm('Hapus foto ini dari beranda? Tindakan ini tidak bisa dibatalkan.')) return;
-        await API.hapusFotoPilihan(item.id);
+        try { await API.hapusFotoPilihan(item.id); } catch (err) { tampilkanToast(err.message); return; }
         tampilkanToast('Foto dihapus.');
         muatPilihan();
       }
@@ -303,7 +308,8 @@ tambahForm.addEventListener('submit', async e => {
   simpanBtn.textContent = 'Menyimpan...';
   try {
     const { foto, rasio } = await olahFoto(file, 1600, 0.82);   // sisi terpanjang 1600 px, tanpa dipotong
-    await API.tambah({ judul, tanggal, kategori, divisi, foto, rasio, album });
+    const { foto: mini } = await olahFoto(file, 480, 0.75);     // gambar kecil untuk kartu galeri (jauh lebih ringan)
+    await API.tambah({ judul, tanggal, kategori, divisi, foto, mini, rasio, album });
 
     tambahForm.reset();
     document.getElementById('tanggal').value = hariIni();
@@ -322,7 +328,8 @@ tambahForm.addEventListener('submit', async e => {
    5. DAFTAR DOKUMENTASI TERSIMPAN + HAPUS
    ===================================================== */
 async function muatDaftar() {
-  const data = await API.ambilSemua();
+  let data;
+  try { data = await API.ambilSemua(); } catch (err) { tampilkanToast(err.message); return; }
   const daftarEl = document.getElementById('daftar');
   document.getElementById('jumlah').textContent = `(${data.length})`;
   daftarEl.innerHTML = '';
@@ -340,12 +347,12 @@ async function muatDaftar() {
     if (item.divisi) bagian.push(item.divisi);
     if (item.album) bagian.push('ada album');
     daftarEl.appendChild(buatBaris({
-      foto: item.foto,
+      foto: item.mini || item.foto,
       judul: item.judul,
       meta: bagian.join(' · '),
       onHapus: async () => {
         if (!confirm(`Hapus "${item.judul}"? Tindakan ini tidak bisa dibatalkan.`)) return;
-        await API.hapus(item.id);
+        try { await API.hapus(item.id); } catch (err) { tampilkanToast(err.message); return; }
         tampilkanToast('Dokumentasi dihapus.');
         muatDaftar();
       }

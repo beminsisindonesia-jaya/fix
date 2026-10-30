@@ -1,9 +1,10 @@
 /* =====================================================
    dokumentasi.js : halaman "Seluruh dokumentasi"
    Data diambil lewat api.js (API.ambilSemua).
-   Fitur: filter kategori & divisi, penggeser tanggal,
-   daftar per bulan, "tampilkan lebih banyak", dan pop-up
-   foto yang bisa maju/mundur (tombol, panah keyboard, geser jari).
+   Fitur: pencarian judul, filter kategori / divisi / bulan, penggeser tanggal,
+   daftar per bulan, "muat lebih banyak", laci filter di HP (tutup dengan tombol ×,
+   klik area kosong, atau Esc), dan pop-up foto yang bisa maju/mundur
+   (tombol, panah keyboard, geser jari).
    ===================================================== */
 
 /* =====================================================
@@ -25,6 +26,8 @@ const elDaftar = document.getElementById('dokDaftar');
 const elRingkas = document.getElementById('dokRingkas');
 const elChips = document.getElementById('dokChips');
 const elDivisi = document.getElementById('dokDivisi');
+const elBulan = document.getElementById('dokBulan');
+const inputCari = document.getElementById('cariJudul');
 const elLebih = document.getElementById('dokLebih');
 const elWaktu = document.getElementById('dokWaktu');
 const elRentang = document.getElementById('dokRentang');
@@ -35,11 +38,13 @@ const elReset = document.getElementById('dokReset');
 let semua = [];                     // seluruh dokumentasi (terbaru di atas)
 let kategoriAktif = 'semua';
 let divisiAktif = 'semua';
+let bulanAktif = 'semua';           // 'YYYY-MM' atau 'semua'
 let tanggalAktif = null;            // 'YYYY-MM-DD' atau null (semua tanggal)
 let dasar = [];                     // hasil saringan kategori + divisi
 let tglUrut = [];                   // tanggal unik dari "dasar", dari terlama ke terbaru
 let daftarTersaring = [];           // yang sedang ditampilkan (juga dipakai pop-up)
 let batas = HALAMAN;
+let kataCari = '';                  // kata kunci pencarian judul (berlaku untuk SEMUA data, bukan hanya yang tampil)
 
 const namaBulan = iso => {
   const [t, b] = iso.split('-').map(Number);
@@ -50,8 +55,19 @@ const tanggalPendek = iso => {
   return new Date(t, b - 1, h).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
+// Ada filter yang sedang aktif?
+const adaFilter = () => kategoriAktif !== 'semua' || divisiAktif !== 'semua' || bulanAktif !== 'semua' || Boolean(kataCari) || Boolean(tanggalAktif);
+const jumlahFilter = () => [kategoriAktif !== 'semua', divisiAktif !== 'semua', bulanAktif !== 'semua', Boolean(kataCari), Boolean(tanggalAktif)].filter(Boolean).length;
+
+function hapusSemuaFilter() {
+  kategoriAktif = 'semua'; divisiAktif = 'semua'; bulanAktif = 'semua'; tanggalAktif = null; kataCari = '';
+  batas = HALAMAN;
+  inputCari.value = '';
+  bangunChips(); bangunDivisi(); bangunBulan(); renderSemua();
+}
+
 /* =====================================================
-   3. PENYARING: kategori (tombol) dan divisi (pilihan)
+   3. PENYARING: kategori (tombol), divisi dan bulan (pilihan)
    ===================================================== */
 function bangunChips() {
   elChips.innerHTML = '';
@@ -92,6 +108,20 @@ elDivisi.addEventListener('change', () => {
   renderSemua();
 });
 
+function bangunBulan() {
+  elBulan.innerHTML = '';
+  elBulan.add(new Option('Semua bulan', 'semua'));
+  [...new Set(semua.map(d => d.tanggal.slice(0, 7)))].sort().reverse()
+    .forEach(ym => elBulan.add(new Option(namaBulan(ym), ym)));
+  elBulan.value = bulanAktif;
+}
+elBulan.addEventListener('change', () => {
+  bulanAktif = elBulan.value;
+  tanggalAktif = null;
+  batas = HALAMAN;
+  renderSemua();
+});
+
 /* =====================================================
    4. PENGGESER TANGGAL
    ===================================================== */
@@ -108,7 +138,7 @@ function aturSlider() {
 
   elRentang.max = n - 1;
   elTicks.innerHTML = '';
-  tglUrut.forEach((t, i) => {
+  if (n <= 60) tglUrut.forEach((t, i) => {                      // titik penanda disembunyikan bila terlalu padat
     const titik = document.createElement('span');
     titik.className = 'dok-tick';
     titik.style.left = `calc(${i / (n - 1)} * (100% - 24px) + 12px)`;
@@ -152,7 +182,7 @@ function buatKartu(item, indeks, urutan) {
   thumb.className = 'dok-thumb';
   if (item.foto) {
     const img = document.createElement('img');
-    img.src = item.foto;
+    img.src = item.mini || item.foto;               // gambar kecil (mini) untuk kartu; foto penuh hanya di pop-up
     img.alt = item.judul;
     img.loading = 'lazy';
     img.decoding = 'async';
@@ -178,6 +208,15 @@ function buatKartu(item, indeks, urutan) {
   return kartu;
 }
 
+// Memperbarui penanda filter: lencana di tombol Filter dan tombol "Hapus semua filter"
+function perbaruiPenanda() {
+  const n = jumlahFilter();
+  const lencana = document.getElementById('lencanaFilter');
+  lencana.textContent = n;
+  lencana.hidden = n === 0;
+  document.getElementById('sidebarReset').hidden = n === 0;
+}
+
 function renderDaftar() {
   daftarTersaring = tanggalAktif ? dasar.filter(d => d.tanggal === tanggalAktif) : dasar;
   elDaftar.innerHTML = '';
@@ -185,22 +224,24 @@ function renderDaftar() {
   const keterangan = [];
   if (kategoriAktif !== 'semua') keterangan.push(namaKategori(kategoriAktif));
   if (divisiAktif !== 'semua') keterangan.push('divisi ' + divisiAktif);
+  if (bulanAktif !== 'semua') keterangan.push(namaBulan(bulanAktif));
+  if (kataCari) keterangan.push(`"${inputCari.value.trim()}"`);
   if (tanggalAktif) keterangan.push(tanggalPendek(tanggalAktif));
   elRingkas.textContent = `${daftarTersaring.length} dokumentasi` + (keterangan.length ? ' · ' + keterangan.join(' · ') : '');
+  perbaruiPenanda();
 
   if (daftarTersaring.length === 0) {
     const kosong = document.createElement('div');
     kosong.className = 'dok-kosong';
-    kosong.append('Belum ada dokumentasi untuk pilihan ini.');
-    const ulang = document.createElement('button');
-    ulang.type = 'button';
-    ulang.className = 'btn btn-line';
-    ulang.textContent = 'Tampilkan semua';
-    ulang.addEventListener('click', () => {
-      kategoriAktif = 'semua'; divisiAktif = 'semua'; tanggalAktif = null; batas = HALAMAN;
-      bangunChips(); bangunDivisi(); renderSemua();
-    });
-    kosong.append(document.createElement('br'), ulang);
+    kosong.append(adaFilter() ? 'Tidak ada dokumentasi yang cocok dengan pilihanmu.' : 'Belum ada dokumentasi.');
+    if (adaFilter()) {
+      const ulang = document.createElement('button');
+      ulang.type = 'button';
+      ulang.className = 'btn btn-line';
+      ulang.textContent = 'Hapus semua filter';
+      ulang.addEventListener('click', hapusSemuaFilter);
+      kosong.append(document.createElement('br'), ulang);
+    }
     elDaftar.appendChild(kosong);
     elLebih.hidden = true;
     return;
@@ -230,7 +271,9 @@ elLebih.addEventListener('click', () => { batas += HALAMAN; renderDaftar(); });
 function renderSemua() {
   dasar = semua.filter(d =>
     (kategoriAktif === 'semua' || d.kategori === kategoriAktif) &&
-    (divisiAktif === 'semua' || d.divisi === divisiAktif));
+    (divisiAktif === 'semua' || d.divisi === divisiAktif) &&
+    (bulanAktif === 'semua' || d.tanggal.startsWith(bulanAktif)) &&
+    (!kataCari || d.judul.toLowerCase().includes(kataCari)));
   tglUrut = [...new Set(dasar.map(d => d.tanggal))].sort();
   if (tanggalAktif && !tglUrut.includes(tanggalAktif)) tanggalAktif = null;
   aturSlider();
@@ -238,25 +281,16 @@ function renderSemua() {
 }
 
 /* =====================================================
-   6. MUAT DATA (DENGAN 5 FOTO CONTOH)
+   6. MUAT DATA
    ===================================================== */
 async function muat() {
   try {
-    // --- DATA CONTOH UNTUK TES GAMBAR ---
-    // Jika nanti sudah pakai backend, ganti baris ini dengan: semua = await API.ambilSemua();
-    semua = [
-      { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800' },
-      { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=800' },
-      { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&q=80&w=800' },
-      { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&q=80&w=800' },
-      { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&q=80&w=800' }
-    ];
-    
-    // Urutkan dari yang terbaru
+    semua = await API.ambilSemua();                 // dari server (api/index.php)
     semua.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
 
     bangunChips();
     bangunDivisi();
+    bangunBulan();
     renderSemua();
   } catch (err) {
     console.error(err);
@@ -276,34 +310,49 @@ const lbTutup = document.getElementById('dokLbTutup');
 let lbIndeks = -1;
 let fokusSebelum = null;
 
+function pil(teks, kelas) {
+  const el = document.createElement('span');
+  el.className = 'dok-pil' + (kelas ? ' ' + kelas : '');
+  el.textContent = teks;
+  return el;
+}
+
 function isiLb() {
   const item = daftarTersaring[lbIndeks];
   if (!item) return;
 
   document.getElementById('dokLbJudul').textContent = item.judul;
-  const bagian = [formatTanggal(item.tanggal), namaKategori(item.kategori)];
-  if (item.divisi) bagian.push(item.divisi);
-  document.getElementById('dokLbMeta').textContent = bagian.join(' · ');
+  const meta = document.getElementById('dokLbMeta');
+  meta.innerHTML = '';
+  meta.append(pil(formatTanggal(item.tanggal), 'tanggal'), pil(namaKategori(item.kategori)));
+  if (item.divisi) meta.append(pil(item.divisi));
 
+  // Gambar kecil tampil seketika, lalu diganti foto penuh begitu selesai dimuat
   lbFoto.innerHTML = '';
-  document.getElementById('dokKerangka').style.setProperty('--rasio', item.rasio || 4 / 3);
   if (item.foto) {
     const img = document.createElement('img');
-    img.src = item.foto;
     img.alt = item.judul;
+    img.draggable = false;
+    const kecil = item.mini && item.mini !== item.foto;
+    img.src = kecil ? item.mini : item.foto;
+    if (kecil) {
+      img.classList.add('sementara');
+      const penuh = new Image();
+      penuh.onload = () => { if (daftarTersaring[lbIndeks] === item) { img.src = item.foto; img.classList.remove('sementara'); } };
+      penuh.src = item.foto;
+    }
     lbFoto.appendChild(img);
   } else {
     lbFoto.textContent = 'Foto kegiatan';
   }
 
-  const album = document.getElementById('dokLbAlbum');
-  if (tautanAman(item.album)) { album.href = item.album; album.hidden = false; } else { album.hidden = true; }
-
-  document.getElementById('dokLbHitung').textContent = `${lbIndeks + 1} / ${daftarTersaring.length}`;
+  const banyak = daftarTersaring.length > 1;                   // panah dan penghitung hanya perlu bila ada lebih dari satu foto
+  document.getElementById('dokLbHitung').textContent = banyak ? `${lbIndeks + 1} / ${daftarTersaring.length}` : '';
+  lbPrev.hidden = lbNext.hidden = !banyak;
   lbPrev.disabled = lbIndeks <= 0;
   lbNext.disabled = lbIndeks >= daftarTersaring.length - 1;
 
-  [lbIndeks - 1, lbIndeks + 1].forEach(i => {
+  [lbIndeks - 1, lbIndeks + 1].forEach(i => {                   // siapkan foto sebelah agar geser terasa cepat
     if (daftarTersaring[i] && daftarTersaring[i].foto) new Image().src = daftarTersaring[i].foto;
   });
 }
@@ -331,14 +380,20 @@ function geser(arah) {
 lbPrev.addEventListener('click', () => geser(-1));
 lbNext.addEventListener('click', () => geser(1));
 lbTutup.addEventListener('click', tutupLb);
-lb.addEventListener('click', e => { if (e.target === lb) tutupLb(); });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !lb.hidden) tutupLb();
-  if (lb.hidden) return;
-  if (e.key === 'ArrowLeft') geser(-1);
-  if (e.key === 'ArrowRight') geser(1);
-});
+lb.addEventListener('click', e => { if (e.target === lb) tutupLb(); });   // klik area gelap di luar kotak = tutup
 
+// Fokus keyboard berputar di dalam wadah (Tab / Shift+Tab) selama pop-up atau laci terbuka
+function jebakFokus(e, wadah) {
+  if (e.key !== 'Tab') return;
+  const bisa = [...wadah.querySelectorAll('button, a[href], input, select')].filter(el => !el.disabled && !el.hidden && el.offsetParent !== null);
+  if (bisa.length === 0) return;
+  const awal = bisa[0], akhir = bisa[bisa.length - 1];
+  if (!wadah.contains(document.activeElement)) { e.preventDefault(); awal.focus(); }
+  else if (e.shiftKey && document.activeElement === awal) { e.preventDefault(); akhir.focus(); }
+  else if (!e.shiftKey && document.activeElement === akhir) { e.preventDefault(); awal.focus(); }
+}
+
+// Geser jari / seret mouse pada foto untuk maju-mundur
 let awalSentuh = null;
 lbFoto.addEventListener('pointerdown', e => { awalSentuh = e.clientX; });
 lbFoto.addEventListener('pointerup', e => {
@@ -350,39 +405,57 @@ lbFoto.addEventListener('pointerup', e => {
 lbFoto.addEventListener('pointercancel', () => { awalSentuh = null; });
 
 /* =====================================================
-   8. PENCARIAN & SIDEBAR MOBILE (Apple Theme)
+   8. PENCARIAN & LACI FILTER (HP/tablet)
+   Laci ditutup lewat: tombol ×, klik area gelap di luar laci, atau tombol Esc.
    ===================================================== */
-const inputCari = document.getElementById('cariJudul');
 const sidebar = document.getElementById('sidebar');
+const sidebarLatar = document.getElementById('sidebarLatar');
 const btnBukaSidebar = document.getElementById('bukaSidebar');
 const btnTutupSidebar = document.getElementById('sidebarTutup');
+const lajurHP = window.matchMedia('(max-width: 900px)');
 
-// Pencarian judul
-if (inputCari) {
-  inputCari.addEventListener('input', () => {
-    const kataKunci = inputCari.value.toLowerCase();
-    const kartuSemua = document.querySelectorAll('.dok-kartu');
-    
-    kartuSemua.forEach(kartu => {
-      const judul = kartu.querySelector('h3').textContent.toLowerCase();
-      if (judul.includes(kataKunci)) {
-        kartu.style.display = 'flex';
-      } else {
-        kartu.style.display = 'none';
-      }
-    });
-  });
+// Pencarian judul: menyaring seluruh data (termasuk yang belum ditampilkan lewat "Muat lebih banyak")
+inputCari.addEventListener('input', () => {
+  kataCari = inputCari.value.trim().toLowerCase();
+  tanggalAktif = null;
+  batas = HALAMAN;
+  renderSemua();
+});
+
+function bukaSidebar() {
+  sidebar.classList.add('terbuka');
+  sidebarLatar.hidden = false;
+  document.body.classList.add('filter-terbuka');
+  btnBukaSidebar.setAttribute('aria-expanded', 'true');
+  btnTutupSidebar.focus();
 }
+function tutupSidebar() {
+  if (!sidebar.classList.contains('terbuka')) return;
+  sidebar.classList.remove('terbuka');
+  sidebarLatar.hidden = true;
+  document.body.classList.remove('filter-terbuka');
+  btnBukaSidebar.setAttribute('aria-expanded', 'false');
+  if (lajurHP.matches) btnBukaSidebar.focus();
+}
+btnBukaSidebar.addEventListener('click', bukaSidebar);
+btnTutupSidebar.addEventListener('click', tutupSidebar);
+sidebarLatar.addEventListener('click', tutupSidebar);
+document.getElementById('sidebarReset').addEventListener('click', hapusSemuaFilter);
+lajurHP.addEventListener('change', () => { if (!lajurHP.matches) tutupSidebar(); });   // layar diputar/diperlebar: laci tidak perlu lagi
 
-// Buka/Tutup Sidebar di HP
-if (btnBukaSidebar && btnTutupSidebar) {
-  btnBukaSidebar.addEventListener('click', () => sidebar.classList.add('terbuka'));
-  btnTutupSidebar.addEventListener('click', () => sidebar.classList.remove('terbuka'));
-  
-  // Tutup sidebar otomatis saat kategori dipilih
-  if (elChips) {
-    elChips.addEventListener('click', () => {
-      if (window.innerWidth <= 900) sidebar.classList.remove('terbuka');
-    });
+/* =====================================================
+   9. KEYBOARD (satu pengendali untuk pop-up foto dan laci filter)
+   ===================================================== */
+document.addEventListener('keydown', e => {
+  if (!lb.hidden) {
+    if (e.key === 'Escape') tutupLb();
+    else if (e.key === 'ArrowLeft') geser(-1);
+    else if (e.key === 'ArrowRight') geser(1);
+    else jebakFokus(e, lb.querySelector('.lightbox-box'));
+    return;
   }
-}
+  if (sidebar.classList.contains('terbuka') && lajurHP.matches) {
+    if (e.key === 'Escape') tutupSidebar();
+    else jebakFokus(e, sidebar);
+  }
+});

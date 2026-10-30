@@ -1,27 +1,18 @@
 /* =====================================================
    api.js : PUSAT DATA
    Semua halaman (situs publik & admin) mengambil/menyimpan
-   data lewat file ini. Sekarang datanya disimpan di browser
-   (localStorage) hanya untuk DEMO.
-
-   >>> HADI: cukup ganti isi fungsi di bawah dengan fetch ke
-       server. Nama fungsi dan bentuk data jangan diubah,
-       maka halaman lain tidak perlu disentuh.
+   data lewat file ini, yang berbicara dengan server di folder api/
+   (api/index.php). Nama fungsi dan bentuk data jangan diubah,
+   maka halaman lain tidak perlu disentuh.
    ===================================================== */
 
-const KUNCI_DATA = 'inspire_dokumentasi';
+const ALAMAT_API = 'api/index.php';
 const KUNCI_LOGIN = 'inspire_admin';
-const KUNCI_PILIHAN = 'inspire_foto_pilihan';
-const KUNCI_ASPIRASI = 'inspire_aspirasi';
 const KUNCI_SANDI_ASPIRASI = 'inspire_sandi_aspirasi';
-const SANDI_DEMO = 'inspire123';           // admin DOKUMENTASI. HANYA DEMO. Login asli harus di server.
-const SANDI_DEMO_ASPIRASI = 'aspirasi123'; // admin ASPIRASI.   HANYA DEMO.
 
-// Alamat Web App Google Apps Script (lihat apps-script.gs). Selama KOSONG, aspirasi
-// disimpan di browser ini saja (mode demo). Isi dengan alamat yang berakhiran /exec
-// agar aspirasi masuk ke Google Spreadsheet sungguhan.
+// OPSIONAL: alamat Web App Google Apps Script bila aspirasi ingin disimpan di Google Spreadsheet.
+// Biarkan KOSONG agar aspirasi disimpan di server situs ini dan dilihat lewat halaman admin aspirasi.
 const URL_ASPIRASI = '';
-const MODE_DEMO_ASPIRASI = !URL_ASPIRASI;
 
 // Pengelompokan kegiatan di halaman "Seluruh dokumentasi".
 // KATEGORI = jenis kegiatan (mudah dipahami pengunjung, stabil dari kabinet ke kabinet).
@@ -36,37 +27,17 @@ const KATEGORI = [
   { id: 'organisasi', nama: 'Organisasi dan kepemimpinan' }
 ];
 
-// DIVISI penyelenggara (opsional, jadi filter kedua). CONTOH: ganti dengan divisi BEM yang sebenarnya.
-const DIVISI = ['Pendidikan', 'Media dan Informasi', 'Sosial Masyarakat', 'Keagamaan', 'Olahraga dan Seni', 'Kaderisasi', 'Kesekretariatan'];
+// Divisi penyelenggara (opsional, jadi filter kedua).
+const DIVISI = ['Ibadah', 'Kesejahteraan Mahasiswa', 'Media dan Informasi', 'Pendidikan', 'Public Relation'];
 
 function namaKategori(id) {
   const k = KATEGORI.find(x => x.id === id);
   return k ? k.nama : id;
 }
 
-// Tautan folder arsip lengkap di Google Drive (kartu terakhir di galeri).
-// >>> GANTI dengan tautan folder yang asli. Folder harus diatur
-//     "Siapa saja yang memiliki link: Penampil" (bukan Editor).
-const ARSIP_LENGKAP = 'https://drive.google.com/drive/folders/GANTI_DENGAN_ID_FOLDER';
-
-// Data contoh yang tampil bila belum ada dokumentasi tersimpan
-const DATA_CONTOH = [
-  { id: 'c01', judul: 'Penyambutan Mahasiswa Baru', tanggal: '2026-07-18', kategori: 'organisasi', divisi: 'Kaderisasi', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80&w=800' },
-  { id: 'c02', judul: 'Seminar Nasional Tafsir', tanggal: '2026-08-12', kategori: 'akademik', divisi: 'Pendidikan', rasio: 1.778, foto: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=800' },
-  { id: 'c03', judul: 'Turnamen Futsal Antar Angkatan', tanggal: '2026-08-12', kategori: 'olahraga', divisi: 'Olahraga dan Seni', rasio: 1.333, foto: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&q=80&w=800' },
-  { id: 'c04', judul: 'Bakti Sosial Desa Binaan', tanggal: '2026-09-03', kategori: 'sosial', divisi: 'Sosial Masyarakat', rasio: 1.5, foto: 'https://images.unsplash.com/photo-1593113589914-07599018dd2a?auto=format&fit=crop&q=80&w=800' },
-  { id: 'c05', judul: 'Kajian Rutin Pekanan', tanggal: '2026-09-18', kategori: 'keagamaan', divisi: 'Keagamaan', rasio: 1.0, foto: 'https://images.unsplash.com/photo-1585036156171-384164a8c675?auto=format&fit=crop&q=80&w=800' }
-];
-
-// Foto pilihan untuk dua roll di beranda (roll 1 = ikhwan, roll 2 = akhwat).
-// Bentuk: { id, kelompok: 'ikhwan'|'akhwat', foto: 'alamat foto', rasio: lebar/tinggi foto (misal 1.5), keterangan: 'teks alternatif (boleh kosong)' }
-const RASIO_CONTOH = [1.5, 0.75, 1.333, 1.778, 1, 1.5, 0.8, 1.333]; // variasi agar bingkai film terlihat hidup
-const PILIHAN_CONTOH = ['ikhwan', 'akhwat'].flatMap(k =>
-  RASIO_CONTOH.map((r, i) => ({ id: `p-${k}-${i + 1}`, kelompok: k, foto: '', rasio: r, keterangan: `Contoh foto ${k} ${i + 1}` })));
-
-// Bentuk satu data dokumentasi (untuk halaman arsip lengkap nanti):
+// Bentuk satu data dokumentasi:
 // { id, judul, tanggal: 'YYYY-MM-DD', kategori: id dari KATEGORI, divisi: nama divisi (boleh kosong),
-//   rasio: lebar/tinggi foto, foto: 'alamat foto sampul', album: 'tautan album Google Drive (boleh kosong)' }
+//   rasio: lebar/tinggi foto, foto: 'alamat foto sampul', mini: 'alamat gambar kecil', album: 'tautan album Drive (boleh kosong)' }
 // Satu data = satu KEGIATAN, dengan satu foto sampul. Foto lengkap ada di album Drive.
 
 // Hanya tautan http/https yang dianggap aman (menolak "javascript:" dan sejenisnya)
@@ -74,90 +45,58 @@ function tautanAman(url) {
   return typeof url === 'string' && /^https?:\/\//i.test(url);
 }
 
-function bacaLokal() {
+// Panggilan ke api/index.php. GET bila tanpa muatan, POST (JSON) bila ada muatan.
+async function panggilServer(rute, muatan) {
+  const opsi = muatan === undefined
+    ? { credentials: 'same-origin' }
+    : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'fetch' }, body: JSON.stringify(muatan) };
+  let r;
   try {
-    const teks = localStorage.getItem(KUNCI_DATA);
-    if (teks) return JSON.parse(teks);
-  } catch (err) { /* abaikan, pakai data contoh */ }
-  return null;
-}
+    r = await fetch(`${ALAMAT_API}?r=${rute}`, opsi);
+  } catch (err) {
+    throw new Error('Tidak bisa terhubung ke server. Periksa koneksi internetmu.');
+  }
+  let data = null;
+  try { data = await r.json(); } catch (err) { /* bukan JSON */ }
 
-function bacaPilihan() {
-  try {
-    const teks = localStorage.getItem(KUNCI_PILIHAN);
-    if (teks) return JSON.parse(teks);
-  } catch (err) { /* abaikan, pakai data contoh */ }
-  return null;
-}
-
-function urutkanTerbaru(daftar) {
-  return [...daftar].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  if (r.status === 401 && rute !== 'masuk') {                    // sesi berakhir: kembali ke halaman login
+    sessionStorage.removeItem(KUNCI_LOGIN);
+    sessionStorage.removeItem(KUNCI_SANDI_ASPIRASI);
+    if (/\/(admin|aspirasi)(\.html)?$/.test(location.pathname)) location.replace('login.html');
+    throw new Error('Sesi berakhir. Silakan masuk lagi.');
+  }
+  if (!r.ok) {
+    const e = new Error((data && data.galat) || `Server bermasalah (kode ${r.status}). Coba lagi nanti.`);
+    e.status = r.status;
+    throw e;
+  }
+  if (data === null) throw new Error('Balasan server tidak dikenali. Pastikan folder "api" sudah ikut diunggah.');
+  return data;
 }
 
 const API = {
-  // Ambil semua dokumentasi (terbaru di atas)
-  // HADI: return (await fetch('/api/dokumentasi')).json();
-  async ambilSemua() {
-    return urutkanTerbaru(bacaLokal() || DATA_CONTOH);
-  },
-
-  // Tambah satu dokumentasi baru
-  // HADI: kirim FormData (judul, tanggal, kategori, file foto) lewat
-  //       fetch('/api/dokumentasi', { method: 'POST', body: formData })
-  async tambah(item) {
-    const daftar = bacaLokal() || [];
-    daftar.push({ ...item, id: 'd' + Date.now() });
-    try {
-      localStorage.setItem(KUNCI_DATA, JSON.stringify(daftar));
-    } catch (err) {
-      throw new Error('Penyimpanan browser penuh. Hapus beberapa data lama (ini batas mode demo).');
-    }
-  },
-
-  // Hapus satu dokumentasi
-  // HADI: fetch('/api/dokumentasi/' + id, { method: 'DELETE' })
-  async hapus(id) {
-    const daftar = (bacaLokal() || DATA_CONTOH).filter(d => d.id !== id);
-    localStorage.setItem(KUNCI_DATA, JSON.stringify(daftar));
-  },
+  // ----- Dokumentasi ("Seluruh dokumentasi") -----
+  async ambilSemua() { return panggilServer('dokumentasi'); },          // terbaru di atas
+  async tambah(item) { await panggilServer('dokumentasi', item); },
+  async hapus(id) { await panggilServer('dokumentasi_hapus', { id }); },
 
   // ----- Foto pilihan beranda (dua roll) -----
-  // HADI: GET /api/foto-pilihan, POST /api/foto-pilihan (FormData: kelompok, foto, keterangan),
-  //       DELETE /api/foto-pilihan/:id
-  async ambilFotoPilihan() {
-    return bacaPilihan() || PILIHAN_CONTOH;
-  },
-  async tambahFotoPilihan(item) {
-    const daftar = bacaPilihan() || [];
-    daftar.unshift({ ...item, id: 'p' + Date.now() }); // yang terbaru di depan
-    try {
-      localStorage.setItem(KUNCI_PILIHAN, JSON.stringify(daftar));
-    } catch (err) {
-      throw new Error('Penyimpanan browser penuh. Hapus beberapa foto lama (ini batas mode demo).');
-    }
-  },
-  async hapusFotoPilihan(id) {
-    const daftar = (bacaPilihan() || PILIHAN_CONTOH).filter(f => f.id !== id);
-    localStorage.setItem(KUNCI_PILIHAN, JSON.stringify(daftar));
-  },
+  async ambilFotoPilihan() { return panggilServer('pilihan'); },
+  async tambahFotoPilihan(item) { await panggilServer('pilihan', item); },
+  async hapusFotoPilihan(id) { await panggilServer('pilihan_hapus', { id }); },
 
   // ----- Aspirasi -----
   // Dikirim pengunjung dari beranda. Bentuk: { nama, pesan }.
-  // Mode Apps Script: tersimpan sebagai baris baru di Google Spreadsheet.
-  // HADI (bila pakai server sendiri): POST /api/aspirasi  (publik, beri batas laju agar tidak di-spam)
   async kirimAspirasi({ nama, pesan }) {
     if (URL_ASPIRASI) {
       const res = await panggilServerAspirasi({ aksi: 'kirim', nama, pesan });
       if (!res.ok) throw new Error(res.galat || 'Aspirasi belum terkirim. Coba lagi.');
       return;
     }
-    const daftar = JSON.parse(localStorage.getItem(KUNCI_ASPIRASI) || '[]');
-    daftar.push({ id: 'a' + Date.now(), waktu: new Date().toISOString(), nama, pesan });
-    localStorage.setItem(KUNCI_ASPIRASI, JSON.stringify(daftar));
+    await panggilServer('aspirasi', { nama, pesan });
   },
 
   // Hanya untuk admin aspirasi. Mengembalikan [{ waktu (ISO), nama, pesan }], terbaru di atas.
-  // HADI (bila pakai server sendiri): GET /api/aspirasi, WAJIB dicek di server (peran "aspirasi").
   async ambilAspirasi() {
     let daftar;
     if (URL_ASPIRASI) {
@@ -165,32 +104,46 @@ const API = {
       if (!res.ok) throw new Error(res.galat || 'Gagal memuat aspirasi.');
       daftar = res.data;
     } else {
-      daftar = JSON.parse(localStorage.getItem(KUNCI_ASPIRASI) || '[]');
+      daftar = await panggilServer('aspirasi');
     }
     return daftar.sort((a, b) => String(b.waktu).localeCompare(String(a.waktu)));
   },
 
-  // ----- Login admin (DEMO) -----
-  // Ada dua peran: 'dokumentasi' dan 'aspirasi'. Masing-masing punya kata sandi sendiri.
-  // HADI: ganti dengan login server (sesi/cookie atau token) yang mengembalikan peran.
-  // Pengecekan sandi di JavaScript TIDAK AMAN karena bisa dibaca lewat "View Source".
-  // Khusus peran 'aspirasi' dengan Apps Script, sandi dicek di server Google (bukan di sini).
+  // ----- Login admin -----
+  // Dua peran: 'dokumentasi' dan 'aspirasi'. Kata sandi dicek di server (api/config.php), bukan di sini.
   async masuk(peran, sandi) {
     if (peran === 'aspirasi' && URL_ASPIRASI) {
       let res;
       try { res = await panggilServerAspirasi({ aksi: 'cek', sandi }); } catch (err) { return false; }
       if (!res.ok) return false;
     } else {
-      const benar = peran === 'aspirasi' ? SANDI_DEMO_ASPIRASI : peran === 'dokumentasi' ? SANDI_DEMO : null;
-      if (benar === null || sandi !== benar) return false;
+      try {
+        const res = await panggilServer('masuk', { peran, sandi });
+        if (!res.ok) return false;
+      } catch (err) {
+        if (err.status === 401) return false;                  // sandi salah
+        throw err;                                             // masalah lain (server, sandi belum diganti, dll.)
+      }
     }
     sessionStorage.setItem(KUNCI_LOGIN, peran);
     if (peran === 'aspirasi') sessionStorage.setItem(KUNCI_SANDI_ASPIRASI, sandi);
     return true;
   },
-  keluar() {
+  async keluar() {
     sessionStorage.removeItem(KUNCI_LOGIN);
     sessionStorage.removeItem(KUNCI_SANDI_ASPIRASI);
+    try { await panggilServer('keluar', {}); } catch (err) { /* abaikan */ }
+  },
+  // Memastikan sesi di server masih berlaku (dipanggil halaman admin). Bila tidak: kembali ke login.
+  async cekSesi(peran) {
+    if (peran === 'aspirasi' && URL_ASPIRASI) return true;
+    try {
+      const r = await panggilServer('sesi');
+      if (r && r.peran === peran) return true;
+    } catch (err) { /* anggap belum masuk */ }
+    sessionStorage.removeItem(KUNCI_LOGIN);
+    location.replace('login.html');
+    return false;
   },
   peran() { return sessionStorage.getItem(KUNCI_LOGIN); },
   // sudahMasuk('aspirasi') = sudah masuk sebagai peran itu; sudahMasuk() = masuk sebagai peran apa pun
@@ -200,7 +153,7 @@ const API = {
   }
 };
 
-// Panggilan ke Google Apps Script. Memakai text/plain agar tidak memicu preflight CORS.
+// Panggilan ke Google Apps Script (opsional). Memakai text/plain agar tidak memicu preflight CORS.
 async function panggilServerAspirasi(muatan) {
   let r;
   try {

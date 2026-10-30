@@ -3,6 +3,13 @@
    Setelah berhasil masuk, pengguna diarahkan ke admin.html
    ===================================================== */
 
+// Catatan kata sandi demo hanya tampil di mode demo (file dibuka dari komputer), tidak pernah di situs asli
+if (MODE_DEMO) {
+  const catatan = document.getElementById('catatanDemo');
+  catatan.innerHTML = 'Mode demo: dokumentasi <strong>inspire123</strong>, aspirasi <strong>aspirasi123</strong>.';
+  catatan.hidden = false;
+}
+
 const tujuan = peran => peran === 'aspirasi' ? 'aspirasi.html' : 'admin.html';
 
 // Kalau sudah masuk sebelumnya, langsung ke halaman sesuai perannya
@@ -17,7 +24,14 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 
   galat.textContent = '';
   tombol.disabled = true;
-  const berhasil = await API.masuk(peran, kolom.value);
+  let berhasil = false;
+  try {
+    berhasil = await API.masuk(peran, kolom.value);
+  } catch (err) {
+    galat.textContent = err.message;                // mis. server bermasalah atau sandi di config.php belum diganti
+    tombol.disabled = false;
+    return;
+  }
   tombol.disabled = false;
 
   if (!berhasil) {

@@ -358,3 +358,6 @@ body.admin::after {
 .tabel td.nama { font-weight: 600; color: #fff; min-width: 8rem; overflow-wrap: anywhere; }
 .tabel td.nama.anonim { font-weight: 400; color: #888; font-style: italic; }
 .tabel td.isi { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 16rem; }
+
+/* Logo + judul di bilah atas admin aspirasi hanya tampilan (bukan tautan) */
+.admin-bar div.brand { cursor: default; -webkit-user-select: none; user-select: none; }

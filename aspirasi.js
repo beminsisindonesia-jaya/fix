@@ -15,12 +15,18 @@ function tampilkanToast(teks) {
   setTimeout(() => toast.classList.remove('show'), 3200);
 }
 
-if (MODE_DEMO_ASPIRASI) document.getElementById('demoBanner').hidden = false;
-
-document.getElementById('keluarBtn').addEventListener('click', () => {
-  API.keluar();
-  location.href = 'login.html';
+// Keluar: akhiri sesi admin, lalu kembali ke bagian "Aspirasi" di beranda.
+// Tombolnya berupa tautan biasa (index.html#aspirasi), jadi tetap jalan walau kode ini gagal dimuat.
+document.getElementById('keluarBtn').addEventListener('click', async e => {
+  e.preventDefault();
+  const tujuan = e.currentTarget.href;
+  try { await API.keluar(); } catch (err) { /* tetap lanjut pulang */ }
+  location.href = tujuan;
 });
+
+// Sesi di server sudah berakhir? Kembali ke login. Dibungkus try agar kegagalan di sini
+// tidak menghentikan pemuatan daftar aspirasi.
+try { API.cekSesi('aspirasi'); } catch (err) { /* diabaikan */ }
 
 const formatWaktu = iso => {
   const d = new Date(iso);
@@ -61,7 +67,11 @@ async function muat() {
     semua = await API.ambilAspirasi();
     tampil();
   } catch (err) {
-    galat.textContent = err.message;
+    galat.textContent = err.message || 'Gagal memuat aspirasi.';
+    badan.innerHTML = '';
+    const tr = document.createElement('tr'), td = document.createElement('td');
+    td.colSpan = 4; td.className = 'kosong'; td.textContent = 'Aspirasi belum bisa ditampilkan.';
+    tr.appendChild(td); badan.appendChild(tr);
   }
 }
 

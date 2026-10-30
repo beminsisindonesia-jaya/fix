@@ -19,7 +19,7 @@
 
   <!-- Penjaga halaman: hanya peran "aspirasi". CATATAN (Hadi): ini hanya pengaman tampilan;
        data aspirasi tetap harus dilindungi di server (Apps Script/API mengecek sandi/peran). -->
-  <script src="api.js"></script>
+  <script src="api.js?v=20261031"></script>
   <script>
     if (!API.sudahMasuk('aspirasi')) {
       document.documentElement.style.display = 'none';
@@ -30,15 +30,15 @@
 <body class="admin">
 
   <header class="admin-bar">
-    <a href="index.html" class="brand"><img src="Logo-bem.png" alt=""><span>Admin Aspirasi</span></a>
+    <!-- Logo dan judul hanya tampilan (bukan tautan). Jalan keluar hanya lewat tombol di kanan. -->
+    <div class="brand"><img src="Logo-bem.png" alt=""><span>Admin Aspirasi</span></div>
     <div class="bar-actions">
-      <a href="index.html" class="link-situs">Lihat situs</a>
-      <button class="btn btn-line btn-small" id="keluarBtn">Keluar</button>
+      <!-- Keluar = akhiri sesi admin, lalu kembali tepat ke bagian "Aspirasi" di beranda -->
+      <a href="index.html#aspirasi" class="btn btn-line btn-small" id="keluarBtn">Keluar</a>
     </div>
   </header>
 
   <main class="admin-main lebar">
-    <p class="demo-banner" id="demoBanner" hidden>Mode demo: aspirasi hanya tersimpan di browser ini. Isi URL_ASPIRASI di api.js agar terhubung ke Google Spreadsheet.</p>
 
     <section class="panel">
       <h2>Aspirasi masuk <span class="jumlah" id="jumlah"></span></h2>
@@ -59,7 +59,7 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="aspirasi.js"></script>
+  <script src="aspirasi.js?v=20261031"></script>
   <script>
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
       document.body.addEventListener('pointermove', e => {
@@ -68,6 +68,5 @@
       });
     }
   </script>
-  <script src="latar-film.js"></script>
 </body>
 </html>
